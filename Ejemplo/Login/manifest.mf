@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: sig.login
+OpenIDE-Module-Install: sig/login/Installer.class
+OpenIDE-Module-Localizing-Bundle: sig/login/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
