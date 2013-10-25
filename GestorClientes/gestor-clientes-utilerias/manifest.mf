@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module: com.sig.utilerias
+OpenIDE-Module-Install: com/sig/utilerias/Installer.class
+OpenIDE-Module-Localizing-Bundle: com/sig/utilerias/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

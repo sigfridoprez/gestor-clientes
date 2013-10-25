@@ -1,6 +1,8 @@
 Manifest-Version: 1.0
 OpenIDE-Module: com.sig.visorcliente
 OpenIDE-Module-Localizing-Bundle: com/sig/visorcliente/Bundle.properties
-OpenIDE-Module-Requires: org.openide.windows.WindowManager
+OpenIDE-Module-Requires: 
+  cnb.com.sig.utilerias,
+  org.openide.windows.WindowManager
 OpenIDE-Module-Specification-Version: 1.0
 
