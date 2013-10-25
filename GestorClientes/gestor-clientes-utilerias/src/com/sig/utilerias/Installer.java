@@ -8,7 +8,6 @@ package com.sig.utilerias;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.PlasticXPLookAndFeel;
 import com.nilo.plaf.nimrod.NimRODLookAndFeel;
-import com.sun.java.swing.plaf.gtk.GTKLookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
