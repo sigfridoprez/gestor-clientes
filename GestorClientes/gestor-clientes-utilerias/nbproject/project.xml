@@ -7,6 +7,14 @@
             <suite-component/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>com.six.model</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.0</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.openide.modules</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -25,6 +33,8 @@
             </module-dependencies>
             <public-packages>
                 <package>com.sig.utilerias</package>
+                <package>com.sig.utilerias.entity</package>
+                <package>com.sig.utilerias.text</package>
             </public-packages>
             <class-path-extension>
                 <runtime-relative-path>ext/jgoodies-common-1.6.0.jar</runtime-relative-path>

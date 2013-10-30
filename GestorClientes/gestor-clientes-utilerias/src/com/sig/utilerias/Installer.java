@@ -23,10 +23,10 @@ public class Installer extends ModuleInstall {
 
     private void inicializaLookAndFeel() {
         try {
-            
-            NimbusLookAndFeel nlaf = new NimbusLookAndFeel();
-//            UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
-            UIManager.setLookAndFeel(new PlasticXPLookAndFeel());
+            UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
+//            UIManager.setLookAndFeel(new PlasticXPLookAndFeel());
+//            UIManager.setLookAndFeel(new NimbusLookAndFeel());
+//            UIManager.setLookAndFeel(new NimRODLookAndFeel());
         } catch (UnsupportedLookAndFeelException ex) {
             Exceptions.printStackTrace(ex);
         }
