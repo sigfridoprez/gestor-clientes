@@ -14,7 +14,7 @@ import javax.persistence.Persistence;
  */
 public final class EntityManagerFactory {
 
-    private static EntityManager entityManager = null;
+    private static final EntityManager entityManager = null;
 
     public static synchronized EntityManager getEntityManager() {
         if (entityManager == null) {
