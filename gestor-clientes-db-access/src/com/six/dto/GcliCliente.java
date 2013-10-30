@@ -21,6 +21,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 
 /**
  *
@@ -34,7 +35,8 @@ import javax.persistence.Table;
 public class GcliCliente implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy=GenerationType.TABLE)
+    @TableGenerator(name = "SEC_CLIENTE",allocationSize = 1, initialValue = 0)
+    @GeneratedValue(strategy=GenerationType.TABLE, generator = "SEC_CLIENTE")
     @Basic(optional = false)
     @Column(name = "ID_CLIENTE")
     private Long idCliente;
