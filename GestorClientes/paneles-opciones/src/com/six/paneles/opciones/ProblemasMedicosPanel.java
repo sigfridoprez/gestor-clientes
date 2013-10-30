@@ -7,6 +7,9 @@ package com.six.paneles.opciones;
 
 import com.sig.utilerias.entity.EntityManagerFactory;
 import com.six.dto.GcliInfProblemaMedico;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +20,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.NotifyDescriptor.Confirmation;
@@ -25,7 +28,8 @@ import org.openide.NotifyDescriptor.Confirmation;
 final class ProblemasMedicosPanel extends javax.swing.JPanel {
 
     private final ProblemasMedicosOptionsPanelController controller;
-    private MyListener listener = new MyListener();
+    private final MyListener listener = new MyListener();
+    private int idProblema = -1;
 
     ProblemasMedicosPanel(ProblemasMedicosOptionsPanelController controller) {
         this.controller = controller;
@@ -53,36 +57,9 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
 
         jPanel1.setPreferredSize(new java.awt.Dimension(600, 300));
 
-        jtProblemasMedicos.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Problema Médico"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
+        jtProblemasMedicos.setModel(new ProblemasMedicosPanel.MyModel());
         jtProblemasMedicos.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(jtProblemasMedicos);
-        if (jtProblemasMedicos.getColumnModel().getColumnCount() > 0) {
-            jtProblemasMedicos.getColumnModel().getColumn(0).setResizable(false);
-            jtProblemasMedicos.getColumnModel().getColumn(0).setPreferredWidth(200);
-            jtProblemasMedicos.getColumnModel().getColumn(0).setHeaderValue(org.openide.util.NbBundle.getMessage(ProblemasMedicosPanel.class, "ProblemasMedicosPanel.jtProblemasMedicos.columnModel.title0")); // NOI18N
-        }
 
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/six/paneles/opciones/resources/agregar.png"))); // NOI18N
         jButton1.setToolTipText(org.openide.util.NbBundle.getMessage(ProblemasMedicosPanel.class, "ProblemasMedicosPanel.jButton1.text")); // NOI18N
@@ -134,7 +111,7 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -165,10 +142,13 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void setFields(int index) {
-        this.jtfProblemaMedico.setText(jtProblemasMedicos.getValueAt(index, 0).toString());
+        GcliInfProblemaMedico gipm = ((MyModel) jtProblemasMedicos.getModel()).getValueAt(index);
+        this.idProblema = gipm.getIdProblema();
+        this.jtfProblemaMedico.setText(gipm.getDescProblema());
     }
 
     private void clearFields() {
+        this.idProblema = -1;
         this.jtfProblemaMedico.setText("");
     }
 
@@ -194,8 +174,8 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
             EntityTransaction transaction = em.getTransaction();
             try {
                 transaction.begin();
-                TypedQuery<GcliInfProblemaMedico> query = em.createNamedQuery("GcliInfProblemaMedico.findByDescProblema", GcliInfProblemaMedico.class);
-                query.setParameter("descProblema", jtfProblemaMedico.getText());
+                TypedQuery<GcliInfProblemaMedico> query = em.createNamedQuery("GcliInfProblemaMedico.findByIdProblema", GcliInfProblemaMedico.class);
+                query.setParameter("idProblema", this.idProblema);
                 List<GcliInfProblemaMedico> list = query.getResultList();
                 GcliInfProblemaMedico problemaMedico;
 
@@ -204,8 +184,8 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
                     problemaMedico = list.get(0);
                 } else {
                     problemaMedico = new GcliInfProblemaMedico();
-                    problemaMedico.setDescProblema(jtfProblemaMedico.getText());
                 }
+                problemaMedico.setDescProblema(jtfProblemaMedico.getText());
                 em.merge(problemaMedico);
                 transaction.commit();
                 recargarTabla(em);
@@ -225,7 +205,8 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
     void load() {
         Logger.getLogger(ProblemasMedicosPanel.class.getName()).warning("Se cargan los problemas médicos a la tabls");
         EntityManager em = EntityManagerFactory.getEntityManager();
-
+        this.idProblema = -1;
+        
         if (em == null) {
             Confirmation message = new NotifyDescriptor.Confirmation("Error en la base de datos!!",
                     NotifyDescriptor.ERROR_MESSAGE);
@@ -236,25 +217,24 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
     }
 
     private void recargarTabla(EntityManager em) {
-        this.jtProblemasMedicos.getSelectionModel().removeListSelectionListener(listener);
         final TypedQuery<GcliInfProblemaMedico> query = em.createNamedQuery("GcliInfProblemaMedico.findAll", GcliInfProblemaMedico.class);
+        System.out.println("Inicia" + new Date());
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+                System.out.println("Inicia:RUN:" + new Date());
+                jtProblemasMedicos.getSelectionModel().removeListSelectionListener(listener);
                 @SuppressWarnings("unchecked")
                 List<GcliInfProblemaMedico> problemasMedicos = query.getResultList();
                 if (problemasMedicos != null && !problemasMedicos.isEmpty()) {
-                    DefaultTableModel modelo = (DefaultTableModel) jtProblemasMedicos.getModel();
-                    if (modelo.getDataVector() != null && modelo.getDataVector().size() > 0) {
-                        modelo.getDataVector().clear();
-                    }
-                    for (GcliInfProblemaMedico gcliInfProblemaMedico : problemasMedicos) {
-                        modelo.addRow(new Object[]{gcliInfProblemaMedico.getDescProblema()});
-                    }
+                    MyModel modelo = (MyModel) jtProblemasMedicos.getModel();
+                    modelo.addRows(problemasMedicos);
                 }
+                jtProblemasMedicos.getSelectionModel().addListSelectionListener(listener);
+                System.out.println("Fin:RUN:" + new Date());
             }
         });
-        this.jtProblemasMedicos.getSelectionModel().addListSelectionListener(listener);
+        System.out.println("fin" + new Date());
     }
 
     void store() {
@@ -276,29 +256,56 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
 
         @Override
         public void valueChanged(ListSelectionEvent e) {
+            System.err.println("ListSelectionEvent" + e);
             ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-            String contents = "";
 
             if (lsm.isSelectionEmpty()) {
                 Logger.getLogger(ProblemasMedicosPanel.class.getName()).log(Level.SEVERE, "Sin datos");
             } else {
-                int minIndex = lsm.getMinSelectionIndex();
-                int maxIndex = lsm.getMaxSelectionIndex();
-                if (minIndex == maxIndex) {
-                    setFields(minIndex);
-                } else {
-                    clearFields();
-                    for (int i = minIndex; i <= maxIndex; i++) {
-                        if (lsm.isSelectedIndex(i)) {
-                            for (int j = 0; j < jtProblemasMedicos.getColumnCount(); j++) {
-                                contents += jtProblemasMedicos.getValueAt(i, j) + " ";
-                            }
-                        }
-                    }
-                    System.out.println(contents);
-                }
+                int seleccionIndex = lsm.getMinSelectionIndex();
+                System.err.println("SeleccionIndex::" + seleccionIndex);
+                setFields(seleccionIndex);
             }
         }
+    }
+
+    private class MyModel extends AbstractTableModel implements Serializable {
+
+        private final List<GcliInfProblemaMedico> problemaMedico = new ArrayList<GcliInfProblemaMedico>();
+
+        public void addRows(List<GcliInfProblemaMedico> problemaMedico) {
+            this.problemaMedico.clear();
+            this.problemaMedico.addAll(problemaMedico);
+            fireTableRowsInserted(0, this.problemaMedico.size());
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return org.openide.util.NbBundle.getMessage(ProblemasMedicosPanel.class, "ProblemasMedicosPanel.jtProblemasMedicos.columnModel.title0");
+        }
+
+        @Override
+        public int getRowCount() {
+            return problemaMedico.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 1;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return problemaMedico.get(rowIndex).getDescProblema();
+        }
+
+        private GcliInfProblemaMedico getValueAt(int index) {
+            if (index < this.problemaMedico.size()) {
+                return this.problemaMedico.get(index);
+            }
+            return null;
+        }
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
