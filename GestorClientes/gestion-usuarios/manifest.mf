@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: com.six.gestion.usuarios
+OpenIDE-Module-Localizing-Bundle: com/six/gestion/usuarios/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+

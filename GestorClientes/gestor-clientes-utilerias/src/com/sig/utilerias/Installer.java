@@ -6,11 +6,14 @@
 package com.sig.utilerias;
 
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
-import com.jgoodies.looks.plastic.PlasticXPLookAndFeel;
-import com.nilo.plaf.nimrod.NimRODLookAndFeel;
+import com.sig.utilerias.entity.EntityManagerFactory;
+import static java.lang.ProcessBuilder.Redirect.from;
+import java.util.Date;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.Exceptions;
 
@@ -19,6 +22,7 @@ public class Installer extends ModuleInstall {
     @Override
     public void restored() {
         inicializaLookAndFeel();
+        inicializaBaseDatos();
     }
 
     private void inicializaLookAndFeel() {
@@ -31,6 +35,19 @@ public class Installer extends ModuleInstall {
             Exceptions.printStackTrace(ex);
         }
 
+    }
+
+    private void inicializaBaseDatos() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Inicia:RUN:" + new Date());
+                EntityManager em = EntityManagerFactory.getEntityManager();
+                Query query = em.createNativeQuery("select current_timestamp from sequence");
+                query.getResultList();
+                System.out.println("Fin:RUN:" + new Date());
+            }
+        });
     }
 
 }

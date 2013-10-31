@@ -111,7 +111,7 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -135,7 +135,7 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -186,9 +186,10 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
                     problemaMedico = new GcliInfProblemaMedico();
                 }
                 problemaMedico.setDescProblema(jtfProblemaMedico.getText());
-                em.merge(problemaMedico);
+                GcliInfProblemaMedico merge = em.merge(problemaMedico);
                 transaction.commit();
                 recargarTabla(em);
+                idProblema = merge.getIdProblema();
             } catch (Exception e) {
                 Confirmation message = new NotifyDescriptor.Confirmation("Error al guardar problema m\u00e9dico. ERROR:: " + e.getMessage(),
                         NotifyDescriptor.ERROR_MESSAGE);
@@ -206,7 +207,7 @@ final class ProblemasMedicosPanel extends javax.swing.JPanel {
         Logger.getLogger(ProblemasMedicosPanel.class.getName()).warning("Se cargan los problemas médicos a la tabls");
         EntityManager em = EntityManagerFactory.getEntityManager();
         this.idProblema = -1;
-        
+
         if (em == null) {
             Confirmation message = new NotifyDescriptor.Confirmation("Error en la base de datos!!",
                     NotifyDescriptor.ERROR_MESSAGE);

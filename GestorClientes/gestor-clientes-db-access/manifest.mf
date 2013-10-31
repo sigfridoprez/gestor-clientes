@@ -1,5 +1,6 @@
 Manifest-Version: 1.0
 OpenIDE-Module: com.six.model
+OpenIDE-Module-Install: com/six/model/Installer.class
 OpenIDE-Module-Localizing-Bundle: com/six/model/Bundle.properties
 OpenIDE-Module-Specification-Version: 1.0
 
