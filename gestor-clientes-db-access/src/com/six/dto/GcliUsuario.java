@@ -51,7 +51,7 @@ public class GcliUsuario implements Serializable {
     private String password;
     @Basic(optional = false)
     @Column(name = "B_ADMINISTRADOR")
-    private Serializable bAdministrador;
+    private Boolean bAdministrador;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idUsuarioAtendio")
     private List<GcliCardex> gcliCardexList;
     @JoinColumn(name = "ID_PERSONA", referencedColumnName = "ID_PERSONA")
@@ -65,7 +65,7 @@ public class GcliUsuario implements Serializable {
         this.idUsuario = idUsuario;
     }
 
-    public GcliUsuario(Long idUsuario, String usuario, String password, Serializable bAdministrador) {
+    public GcliUsuario(Long idUsuario, String usuario, String password, Boolean bAdministrador) {
         this.idUsuario = idUsuario;
         this.usuario = usuario;
         this.password = password;
@@ -96,11 +96,11 @@ public class GcliUsuario implements Serializable {
         this.password = password;
     }
 
-    public Serializable getBAdministrador() {
+    public Boolean getBAdministrador() {
         return bAdministrador;
     }
 
-    public void setBAdministrador(Serializable bAdministrador) {
+    public void setBAdministrador(Boolean bAdministrador) {
         this.bAdministrador = bAdministrador;
     }
 
