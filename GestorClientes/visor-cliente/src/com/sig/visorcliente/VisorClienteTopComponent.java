@@ -5,20 +5,45 @@
  */
 package com.sig.visorcliente;
 
+import com.sig.utilerias.FuncionesValidacion;
+import com.sig.utilerias.entity.EntityManagerFactory;
 import com.sig.visorcliente.form.HistoriaClinicaForm;
+import com.six.dto.GcliCliente;
+import com.six.dto.GcliInfAsentamiento;
+import com.six.dto.GcliInfCodigoPostal;
+import com.six.dto.GcliInfDomicilio;
+import com.six.dto.GcliInfPersona;
+import com.six.dto.GcliInfProblemaMedico;
+import com.six.expclientes.ExploradorClientesTopComponent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Collection;
 import java.util.logging.Logger;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.cookies.SaveCookie;
+import org.openide.util.Lookup;
+import org.openide.util.LookupEvent;
+import org.openide.util.LookupListener;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.WindowManager;
 
 /**
@@ -45,10 +70,22 @@ import org.openide.windows.WindowManager;
     "CTL_VisorClienteTopComponent=VisorCliente Window",
     "HINT_VisorClienteTopComponent=This is a VisorCliente window"
 })
-public final class VisorClienteTopComponent extends TopComponent {
+public final class VisorClienteTopComponent extends TopComponent implements LookupListener {
 
     private static String PREFERRED_ID = "VisorClienteTopComponent";
     private static VisorClienteTopComponent instance;
+    private final SaveCookieImpl impl;
+    private final InstanceContent content;
+    private GcliCliente cliente;
+    private GcliInfCodigoPostal cp;
+
+    public JTabbedPane getJtpCliente() {
+        return jtpCliente;
+    }
+
+    public JTextField getJtNombre() {
+        return jtNombre;
+    }
 
     public VisorClienteTopComponent() {
         initComponents();
@@ -60,6 +97,27 @@ public final class VisorClienteTopComponent extends TopComponent {
         putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
+
+        MyDocumentListener myDocumentListener = new MyDocumentListener();
+        jtNombre.getDocument().addDocumentListener(myDocumentListener);
+        jtApPaterno.getDocument().addDocumentListener(myDocumentListener);
+        jtApMaterno.getDocument().addDocumentListener(myDocumentListener);
+        jtTelefono.getDocument().addDocumentListener(myDocumentListener);
+        jtCelular.getDocument().addDocumentListener(myDocumentListener);
+        jtEmail.getDocument().addDocumentListener(myDocumentListener);
+        jtCalle.getDocument().addDocumentListener(myDocumentListener);
+        jtNoExterior.getDocument().addDocumentListener(myDocumentListener);
+        jtNoInterior.getDocument().addDocumentListener(myDocumentListener);
+        jtCp.getDocument().addDocumentListener(myDocumentListener);
+
+        //Create a new instance of our SaveCookie implementation:
+        impl = new SaveCookieImpl();
+
+        //Create a new instance of our dynamic object:
+        content = new InstanceContent();
+
+        //Add the dynamic object to the TopComponent Lookup:
+        associateLookup(new AbstractLookup(content));
     }
 
     /**
@@ -70,12 +128,12 @@ public final class VisorClienteTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jtpCliente = new javax.swing.JTabbedPane();
         jpCliente = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jtProblemasMedicos = new javax.swing.JTable();
         jButton1 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
@@ -86,19 +144,21 @@ public final class VisorClienteTopComponent extends TopComponent {
         jLabel17 = new javax.swing.JLabel();
         jLabel18 = new javax.swing.JLabel();
         jLabel19 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jFormattedTextField1 = new javax.swing.JFormattedTextField();
-        jFormattedTextField2 = new javax.swing.JFormattedTextField();
-        jFormattedTextField3 = new javax.swing.JFormattedTextField();
-        jTextField4 = new javax.swing.JTextField();
-        jTextField5 = new javax.swing.JTextField();
-        jTextField6 = new javax.swing.JTextField();
-        jTextField7 = new javax.swing.JTextField();
+        jtNombre = new javax.swing.JTextField();
+        jtApPaterno = new javax.swing.JTextField();
+        jtApMaterno = new javax.swing.JTextField();
+        jtTelefono = new javax.swing.JFormattedTextField();
+        jtCelular = new javax.swing.JFormattedTextField();
+        jtEmail = new javax.swing.JFormattedTextField();
+        jtCalle = new javax.swing.JTextField();
+        jtNoExterior = new javax.swing.JTextField();
+        jtNoInterior = new javax.swing.JTextField();
+        jtCp = new javax.swing.JTextField();
+        jlColonia = new javax.swing.JLabel();
+        jlMunicipio = new javax.swing.JLabel();
+        jlEstado = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         jpCardex = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
@@ -139,7 +199,7 @@ public final class VisorClienteTopComponent extends TopComponent {
 
         jScrollPane1.setBorder(null);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        jtProblemasMedicos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null},
                 {null, null, null},
@@ -181,25 +241,25 @@ public final class VisorClienteTopComponent extends TopComponent {
                 return canEdit [columnIndex];
             }
         });
-        jTable1.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        jScrollPane1.setViewportView(jTable1);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(0).setMinWidth(20);
-            jTable1.getColumnModel().getColumn(0).setPreferredWidth(20);
-            jTable1.getColumnModel().getColumn(0).setMaxWidth(20);
-            jTable1.getColumnModel().getColumn(0).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title1_1")); // NOI18N
-            jTable1.getColumnModel().getColumn(1).setMinWidth(200);
-            jTable1.getColumnModel().getColumn(1).setPreferredWidth(200);
-            jTable1.getColumnModel().getColumn(1).setMaxWidth(200);
-            jTable1.getColumnModel().getColumn(1).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title0")); // NOI18N
-            jTable1.getColumnModel().getColumn(2).setResizable(false);
-            jTable1.getColumnModel().getColumn(2).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title3")); // NOI18N
+        jtProblemasMedicos.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane1.setViewportView(jtProblemasMedicos);
+        if (jtProblemasMedicos.getColumnModel().getColumnCount() > 0) {
+            jtProblemasMedicos.getColumnModel().getColumn(0).setMinWidth(20);
+            jtProblemasMedicos.getColumnModel().getColumn(0).setPreferredWidth(20);
+            jtProblemasMedicos.getColumnModel().getColumn(0).setMaxWidth(20);
+            jtProblemasMedicos.getColumnModel().getColumn(0).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title1_1")); // NOI18N
+            jtProblemasMedicos.getColumnModel().getColumn(1).setMinWidth(200);
+            jtProblemasMedicos.getColumnModel().getColumn(1).setPreferredWidth(200);
+            jtProblemasMedicos.getColumnModel().getColumn(1).setMaxWidth(200);
+            jtProblemasMedicos.getColumnModel().getColumn(1).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title0")); // NOI18N
+            jtProblemasMedicos.getColumnModel().getColumn(2).setResizable(false);
+            jtProblemasMedicos.getColumnModel().getColumn(2).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title3")); // NOI18N
         }
 
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/sig/visorcliente/resources/agregar.png"))); // NOI18N
         org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jButton1.text")); // NOI18N
         jButton1.setToolTipText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jButton1.toolTipText")); // NOI18N
-        jButton1.setPreferredSize(new java.awt.Dimension(50, 50));
+        jButton1.setPreferredSize(new java.awt.Dimension(24, 24));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -213,15 +273,15 @@ public final class VisorClienteTopComponent extends TopComponent {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 903, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 238, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -243,33 +303,43 @@ public final class VisorClienteTopComponent extends TopComponent {
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel19, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel19.text")); // NOI18N
 
-        jTextField1.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField1.text")); // NOI18N
+        jtNombre.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtNombre.text")); // NOI18N
 
-        jTextField2.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField2.text")); // NOI18N
+        jtApPaterno.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtApPaterno.text")); // NOI18N
 
-        jTextField3.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField3.text")); // NOI18N
+        jtApMaterno.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtApMaterno.text")); // NOI18N
 
-        jFormattedTextField1.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField1.text")); // NOI18N
-        jFormattedTextField1.setPreferredSize(new java.awt.Dimension(100, 19));
+        jtTelefono.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtTelefono.text")); // NOI18N
+        jtTelefono.setPreferredSize(new java.awt.Dimension(100, 19));
 
-        jFormattedTextField2.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField2.text")); // NOI18N
-        jFormattedTextField2.setPreferredSize(new java.awt.Dimension(100, 19));
+        jtCelular.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCelular.text")); // NOI18N
+        jtCelular.setPreferredSize(new java.awt.Dimension(100, 19));
 
-        jFormattedTextField3.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField3.text")); // NOI18N
+        jtEmail.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtEmail.text")); // NOI18N
 
-        jTextField4.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField4.text")); // NOI18N
+        jtCalle.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCalle.text")); // NOI18N
 
-        jTextField5.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField5.text")); // NOI18N
+        jtNoExterior.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtNoExterior.text")); // NOI18N
 
-        jTextField6.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField6.text")); // NOI18N
+        jtNoInterior.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtNoInterior.text")); // NOI18N
 
-        jTextField7.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField7.text")); // NOI18N
+        jtCp.setDocument(new com.sig.utilerias.text.JTextFieldLimit(5));
+        jtCp.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCp.text")); // NOI18N
+        jtCp.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jtCpFocusLost(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(jlColonia, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jlColonia.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jlMunicipio, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jlMunicipio.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jlEstado, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jlEstado.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel2.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel3.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel4.text")); // NOI18N
 
         javax.swing.GroupLayout jpClienteLayout = new javax.swing.GroupLayout(jpCliente);
         jpCliente.setLayout(jpClienteLayout);
@@ -285,52 +355,56 @@ public final class VisorClienteTopComponent extends TopComponent {
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1))
+                        .addComponent(jtNombre))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField2))
+                        .addComponent(jtApPaterno))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField3))
+                        .addComponent(jtApMaterno))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFormattedTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtCelular, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFormattedTextField3))
+                        .addComponent(jtEmail))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField4))
+                        .addComponent(jtCalle))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField5))
+                        .addComponent(jtNoExterior))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField6))
+                        .addComponent(jtNoInterior))
                     .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jpClienteLayout.createSequentialGroup()
-                                .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jtCp, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(jlColonia, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(jpClienteLayout.createSequentialGroup()
-                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jlMunicipio, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel3)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jlEstado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
         jpClienteLayout.setVerticalGroup(
@@ -339,52 +413,54 @@ public final class VisorClienteTopComponent extends TopComponent {
                 .addContainerGap()
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtApPaterno, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtApMaterno, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel13)
-                    .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jtTelefono, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel14)
-                    .addComponent(jFormattedTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtCelular, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel15)
-                    .addComponent(jFormattedTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel16)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtCalle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel17)
-                    .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtNoExterior, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel18)
-                    .addComponent(jTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtNoInterior, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel19)
-                    .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
+                    .addComponent(jtCp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jlColonia))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4))
+                    .addComponent(jlMunicipio)
+                    .addComponent(jlEstado)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCliente.TabConstraints.tabTitle"), jpCliente); // NOI18N
+        jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCliente.TabConstraints.tabTitle"), jpCliente); // NOI18N
 
         jTable2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -657,21 +733,21 @@ public final class VisorClienteTopComponent extends TopComponent {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel22)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 98, Short.MAX_VALUE)
-                .addContainerGap(13, Short.MAX_VALUE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
+                .addContainerGap(35, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex); // NOI18N
+        jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
+            .addComponent(jtpCliente)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
+            .addComponent(jtpCliente)
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -699,19 +775,16 @@ public final class VisorClienteTopComponent extends TopComponent {
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        HistoriaClinicaForm clinicaForm = new HistoriaClinicaForm();
+        final HistoriaClinicaForm clinicaForm = new HistoriaClinicaForm();
         JButton ok = new JButton();
-        ok.setText("OK");
+        ok.setText("Guardar");
         JButton cancel = new JButton();
-        cancel.setText("Cancel");
-
-        cancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-            }
-        });
+        cancel.setText("Cancelar");
 
         ok.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
+                GcliInfProblemaMedico objeto = (GcliInfProblemaMedico) clinicaForm.getJcProblemasMedicos().getModel().getSelectedItem();
+                System.err.println("ob"+objeto.getDescProblema());
             }
         });
 
@@ -720,16 +793,45 @@ public final class VisorClienteTopComponent extends TopComponent {
         DialogDisplayer.getDefault().notifyLater(nd);
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void jtCpFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtCpFocusLost
+        // TODO add your handling code here:
+        if (FuncionesValidacion.esValido(jtCp.getText())) {
+            EntityManager entityManager = EntityManagerFactory.getEntityManager();
+            TypedQuery<GcliInfCodigoPostal> query = entityManager.createNamedQuery("GcliInfCodigoPostal.findByCodigoPostal", GcliInfCodigoPostal.class);
+            query.setParameter("codigoPostal", jtCp.getText());
+            try {
+                cp = query.getSingleResult();
+            } catch (NoResultException e) {
+                cp = null;
+            }
+            if (cp != null) {
+                String colonia = "";
+                if (cp.getGcliInfAsentamientoList() != null) {
+                    for (GcliInfAsentamiento asentamiento : cp.getGcliInfAsentamientoList()) {
+                        colonia = asentamiento.getCodigoTipoAsentamiento().getNombreTipoAsentamiento() + ": " + asentamiento.getNombreAsentamiento();
+                        break;
+                    }
+                }
+                jlColonia.setText(colonia);
+                jlMunicipio.setText(cp.getGcliInfMunicipio().getNombreMunicipio());
+                jlEstado.setText(cp.getGcliInfMunicipio().getGcliInfEstado().getNombreEstado());
+            } else {
+                JOptionPane.showMessageDialog(null, "Codigo Postal no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
+                resetDatosCp();
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "El Codigo Postal no puede estar vacio o nulo.", "Error", JOptionPane.ERROR_MESSAGE);
+            resetDatosCp();
+        }
+    }//GEN-LAST:event_jtCpFocusLost
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JComboBox jComboBox1;
     private com.toedter.calendar.JDateChooser jDateChooser1;
-    private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JFormattedTextField jFormattedTextField12;
-    private javax.swing.JFormattedTextField jFormattedTextField2;
-    private javax.swing.JFormattedTextField jFormattedTextField3;
     private javax.swing.JFormattedTextField jFormattedTextField4;
     private javax.swing.JFormattedTextField jFormattedTextField5;
     private javax.swing.JFormattedTextField jFormattedTextField6;
@@ -752,7 +854,6 @@ public final class VisorClienteTopComponent extends TopComponent {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
@@ -765,24 +866,30 @@ public final class VisorClienteTopComponent extends TopComponent {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField10;
     private javax.swing.JTextField jTextField13;
     private javax.swing.JTextField jTextField14;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
     private javax.swing.JTextField jTextField8;
     private javax.swing.JTextField jTextField9;
     private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JLabel jlColonia;
+    private javax.swing.JLabel jlEstado;
+    private javax.swing.JLabel jlMunicipio;
     private javax.swing.JPanel jpCardex;
     private javax.swing.JPanel jpCliente;
+    private javax.swing.JTextField jtApMaterno;
+    private javax.swing.JTextField jtApPaterno;
+    private javax.swing.JTextField jtCalle;
+    private javax.swing.JFormattedTextField jtCelular;
+    private javax.swing.JTextField jtCp;
+    private javax.swing.JFormattedTextField jtEmail;
+    private javax.swing.JTextField jtNoExterior;
+    private javax.swing.JTextField jtNoInterior;
+    private javax.swing.JTextField jtNombre;
+    private javax.swing.JTable jtProblemasMedicos;
+    private javax.swing.JFormattedTextField jtTelefono;
+    private javax.swing.JTabbedPane jtpCliente;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
@@ -806,7 +913,126 @@ public final class VisorClienteTopComponent extends TopComponent {
         // TODO read your settings according to their version
     }
 
+    public void fire(boolean modified) {
+        if (modified) {
+            //If the text is modified,
+            //we add SaveCookie impl to Lookup:
+            content.add(impl);
+        } else {
+            //Otherwise, we remove the SaveCookie impl from the lookup:
+            content.remove(impl);
+        }
+    }
+
     void resetFields() {
         Logger.getLogger(VisorClienteTopComponent.class.getName()).warning("se limpian los fields");
+        jtNombre.setText("");
+        jtApPaterno.setText("");
+        jtApMaterno.setText("");
+        jtTelefono.setText("");
+        jtCelular.setText("");
+        jtEmail.setText("");
+        jtCalle.setText("");
+        jtNoExterior.setText("");
+        jtNoInterior.setText("");
+        jtCp.setText("");
+        //Se limpia la tabla
+        ((DefaultTableModel) jtProblemasMedicos.getModel()).getDataVector().clear();
+        resetDatosCp();
+        cliente = null;
+    }
+
+    @Override
+    public void resultChanged(LookupEvent lookupEvent) {
+        Lookup.Result r = (Lookup.Result) lookupEvent.getSource();
+        Collection<GcliCliente> coll = r.allInstances();
+        if (!coll.isEmpty()) {
+            for (GcliCliente cliente : coll) {
+                this.cliente = cliente;
+//                jTextField1.setText(cust.getName());
+//                jTextField2.setText(cust.getCity());
+            }
+        } else {
+            resetFields();
+        }
+    }
+
+    private void resetDatosCp() {
+        jlColonia.setText("");
+        jlMunicipio.setText("");
+        jlEstado.setText("");
+    }
+
+    private class MyDocumentListener implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent arg0) {
+            fire(true);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent arg0) {
+            fire(true);
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent arg0) {
+            fire(true);
+        }
+
+    }
+
+    private class SaveCookieImpl implements SaveCookie {
+
+        @Override
+        public void save() throws IOException {
+
+            NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar al cliente \""
+                    + jtNombre.getText() + " (" + jtApPaterno.getText() + ")\"?",
+                    NotifyDescriptor.OK_CANCEL_OPTION,
+                    NotifyDescriptor.QUESTION_MESSAGE);
+
+            Object result = DialogDisplayer.getDefault().notify(message);
+
+            if (NotifyDescriptor.YES_OPTION.equals(result)) {
+                fire(false);
+                EntityManager entityManager = EntityManagerFactory.getEntityManager();
+                entityManager.getTransaction().begin();
+                if (cliente != null && cliente.getIdCliente() != null) {
+                    GcliCliente c = entityManager.find(GcliCliente.class, cliente.getIdCliente());
+                    c.getIdPersona().setNombre(jtNombre.getText());
+                    c.getIdPersona().setApellidoPaterno(jtApPaterno.getText());
+                    c.getIdPersona().setApellidoMaterno(jtApMaterno.getText());
+                    c.getIdPersona().setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(jtTelefono.getValue().toString()) : null);
+                    c.getIdPersona().setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(jtCelular.getValue().toString()) : null);
+                    c.getIdPersona().setCorreoElectronico(jtEmail.getText());
+                    c.getIdPersona().getIdDomicilio().setCalle(jtCalle.getText());
+                    c.getIdPersona().getIdDomicilio().setNumeroExterior(jtNoExterior.getText());
+                    c.getIdPersona().getIdDomicilio().setNumeroInterior(jtNoInterior.getText());
+                    c.getIdPersona().getIdDomicilio().setCodigoPostal(cp);
+                    entityManager.getTransaction().commit();
+                } else {
+                    GcliCliente c = new GcliCliente();
+                    GcliInfPersona persona = new GcliInfPersona();
+                    persona.setNombre(jtNombre.getText());
+                    persona.setApellidoPaterno(jtApPaterno.getText());
+                    persona.setApellidoMaterno(jtApMaterno.getText());
+                    persona.setCorreoElectronico(jtEmail.getText());
+                    persona.setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(jtTelefono.getValue().toString()) : null);
+                    persona.setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(jtCelular.getValue().toString()) : null);
+                    GcliInfDomicilio domicilio = new GcliInfDomicilio();
+                    domicilio.setCalle(jtCalle.getText());
+                    domicilio.setNumeroExterior(jtNoExterior.getText());
+                    domicilio.setNumeroInterior(jtNoInterior.getText());
+                    domicilio.setCodigoPostal(cp);
+                    persona.setIdDomicilio(domicilio);
+                    c.setIdPersona(persona);
+                    entityManager.persist(c);
+                    entityManager.getTransaction().commit();
+                }
+                ExploradorClientesTopComponent.refreshNode();
+            }
+
+        }
     }
 }

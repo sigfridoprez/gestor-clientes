@@ -4,34 +4,48 @@
  */
 package com.six.expclientes;
 
+import com.sig.utilerias.entity.EntityManagerFactory;
+import com.six.dto.GcliCliente;
+import com.six.expclientes.util.ClienteChildFactory;
+import com.six.expclientes.util.ClienteRootNode;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.explorer.ExplorerManager;
+import org.openide.nodes.AbstractNode;
+import org.openide.nodes.Children;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.RequestProcessor;
 
 /**
  * Top component which displays something.
  */
 @ConvertAsProperties(
-    dtd = "-//com.six.expclientes//ExploradorClientes//EN",
-autostore = false)
+        dtd = "-//com.six.expclientes//ExploradorClientes//EN",
+        autostore = false)
 @TopComponent.Description(
-    preferredID = "ExploradorClientesTopComponent",
-//iconBase="SET/PATH/TO/ICON/HERE", 
-persistenceType = TopComponent.PERSISTENCE_ALWAYS)
+        preferredID = "ExploradorClientesTopComponent",
+        //iconBase="SET/PATH/TO/ICON/HERE", 
+        persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(mode = "explorer", openAtStartup = true)
 @ActionID(category = "Window", id = "com.six.expclientes.ExploradorClientesTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
-    displayName = "#CTL_ExploradorClientesAction",
-preferredID = "ExploradorClientesTopComponent")
+        displayName = "#CTL_ExploradorClientesAction",
+        preferredID = "ExploradorClientesTopComponent")
 @Messages({
     "CTL_ExploradorClientesAction=Explorador Clientes",
     "CTL_ExploradorClientesTopComponent=Explorador Clientes",
     "HINT_ExploradorClientesTopComponent=Explorador Clientes"
 })
-public final class ExploradorClientesTopComponent extends TopComponent {
+public final class ExploradorClientesTopComponent extends TopComponent implements ExplorerManager.Provider {
+
+    private static ExplorerManager em = new ExplorerManager();
 
     public ExploradorClientesTopComponent() {
         initComponents();
@@ -44,6 +58,26 @@ public final class ExploradorClientesTopComponent extends TopComponent {
         putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
 
+        RequestProcessor.getDefault().post(new Runnable() {
+            @Override
+            public void run() {
+                readCustomer();
+            }
+        });
+    }
+
+    private void readCustomer() {
+        EntityManager entityManager = EntityManagerFactory.getEntityManager();
+        final Query query = entityManager.createNamedQuery("GcliCliente.findAll");
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                @SuppressWarnings("unchecked")
+                List<GcliCliente> resultList = query.getResultList();
+                em.setRootContext(new AbstractNode(Children.create(new ClienteChildFactory(resultList), true)));
+            }
+        });
     }
 
     /**
@@ -62,6 +96,7 @@ public final class ExploradorClientesTopComponent extends TopComponent {
         jTextField3 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
+        beanTreeView1 = new org.openide.explorer.view.BeanTreeView();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ExploradorClientesTopComponent.class, "ExploradorClientesTopComponent.jLabel1.text")); // NOI18N
 
@@ -86,11 +121,11 @@ public final class ExploradorClientesTopComponent extends TopComponent {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addComponent(beanTreeView1, javax.swing.GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 178, Short.MAX_VALUE)
+            .addComponent(beanTreeView1, javax.swing.GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -141,6 +176,7 @@ public final class ExploradorClientesTopComponent extends TopComponent {
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.openide.explorer.view.BeanTreeView beanTreeView1;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -152,7 +188,10 @@ public final class ExploradorClientesTopComponent extends TopComponent {
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
-        // TODO add custom code on component opening
+        EntityManager entityManager = EntityManagerFactory.getEntityManager();
+        Query query = entityManager.createNamedQuery("GcliCliente.findAll");
+        List<GcliCliente> resultList = query.getResultList();
+        em.setRootContext(new AbstractNode(Children.create(new ClienteChildFactory(resultList), true)));
     }
 
     @Override
@@ -170,5 +209,17 @@ public final class ExploradorClientesTopComponent extends TopComponent {
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
+    }
+
+    public static void refreshNode() {
+        EntityManager entityManager = EntityManagerFactory.getEntityManager();
+        Query query = entityManager.createNamedQuery("GcliCliente.findAll");
+        List<GcliCliente> resultList = query.getResultList();
+        em.setRootContext(new ClienteRootNode(Children.create(new ClienteChildFactory(resultList), true)));
+    }
+
+    @Override
+    public ExplorerManager getExplorerManager() {
+        return em;
     }
 }

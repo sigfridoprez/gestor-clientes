@@ -19,7 +19,7 @@ import org.openide.windows.WindowManager;
         id = "com.sig.visorcliente.CreateUsuario"
 )
 @ActionRegistration(
-        iconBase = "com/sig/visorcliente/usuario_agregar.png",
+        iconBase = "com/sig/visorcliente/resources/usuario_agregar.png",
         displayName = "#CTL_CreateUsuario"
 )
 @ActionReferences({
@@ -32,10 +32,11 @@ public final class CreateUsuario implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-         VisorClienteTopComponent tc = VisorClienteTopComponent.findInstance();
-//        VisorClienteTopComponent tc = (VisorClienteTopComponent) WindowManager.getDefault().findTopComponent("VisorClienteTopComponent");
-        tc.resetFields();
+        VisorClienteTopComponent tc = VisorClienteTopComponent.findInstance();
         tc.open();
         tc.requestActive();
+        tc.getJtpCliente().setSelectedIndex(0);
+        tc.getJtNombre().requestFocus();
+        tc.resetFields();
     }
 }

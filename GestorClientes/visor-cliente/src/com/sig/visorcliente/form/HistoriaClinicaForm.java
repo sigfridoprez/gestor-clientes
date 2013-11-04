@@ -3,8 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.sig.visorcliente.form;
+
+import com.sig.utilerias.entity.EntityManagerFactory;
+import com.six.dto.GcliInfProblemaMedico;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.swing.AbstractListModel;
+import javax.swing.JComboBox;
+import javax.swing.JTextArea;
+import javax.swing.MutableComboBoxModel;
 
 /**
  *
@@ -17,6 +28,10 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
      */
     public HistoriaClinicaForm() {
         initComponents();
+        EntityManager entityManager = EntityManagerFactory.getEntityManager();
+        TypedQuery<GcliInfProblemaMedico> query = entityManager.createNamedQuery("GcliInfProblemaMedico.findAll", GcliInfProblemaMedico.class);
+        List<GcliInfProblemaMedico> problemas = query.getResultList();
+        ((MyModel)this.jcProblemasMedicos.getModel()).addElements(problemas);
     }
 
     /**
@@ -28,20 +43,20 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jComboBox1 = new javax.swing.JComboBox();
+        jcProblemasMedicos = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        jtaObservaciones = new javax.swing.JTextArea();
         jLabel2 = new javax.swing.JLabel();
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jcProblemasMedicos.setModel(new HistoriaClinicaForm.MyModel());
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(HistoriaClinicaForm.class, "HistoriaClinicaForm.jLabel1.text")); // NOI18N
         jLabel1.setPreferredSize(new java.awt.Dimension(120, 15));
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        jtaObservaciones.setColumns(20);
+        jtaObservaciones.setRows(5);
+        jScrollPane1.setViewportView(jtaObservaciones);
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(HistoriaClinicaForm.class, "HistoriaClinicaForm.jLabel2.text")); // NOI18N
         jLabel2.setPreferredSize(new java.awt.Dimension(120, 15));
@@ -57,7 +72,7 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jcProblemasMedicos, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -66,7 +81,7 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jcProblemasMedicos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -80,10 +95,82 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JComboBox jcProblemasMedicos;
+    private javax.swing.JTextArea jtaObservaciones;
     // End of variables declaration//GEN-END:variables
+
+    private class MyModel extends AbstractListModel<GcliInfProblemaMedico> implements MutableComboBoxModel<GcliInfProblemaMedico>, Serializable {
+
+        private final List<GcliInfProblemaMedico> infProblemaMedicos = new ArrayList<GcliInfProblemaMedico>();
+        private GcliInfProblemaMedico problemaMedico = null;
+
+        public MyModel() {
+        }
+
+        public MyModel(List<GcliInfProblemaMedico> infProblemaMedicos) {
+            this.infProblemaMedicos.clear();
+            this.infProblemaMedicos.addAll(infProblemaMedicos);
+        }
+
+        public void addElements(List<GcliInfProblemaMedico> infProblemaMedicos) {
+            this.infProblemaMedicos.clear();
+            this.infProblemaMedicos.addAll(infProblemaMedicos);
+        }
+
+        @Override
+        public int getSize() {
+            return infProblemaMedicos.size();
+        }
+
+        @Override
+        public GcliInfProblemaMedico getElementAt(int index) {
+            return infProblemaMedicos.get(index);
+        }
+
+        @Override
+        public void addElement(GcliInfProblemaMedico item) {
+            this.infProblemaMedicos.add(item);
+        }
+
+        @Override
+        public void removeElement(Object obj) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void insertElementAt(GcliInfProblemaMedico item, int index) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void removeElementAt(int index) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void setSelectedItem(Object anObject) {
+            if ((problemaMedico != null && problemaMedico.getIdProblema().intValue() != ((GcliInfProblemaMedico) anObject).getIdProblema().intValue())
+                    || problemaMedico == null && anObject != null) {
+                problemaMedico = (GcliInfProblemaMedico) anObject;
+                fireContentsChanged(this, -1, -1);
+            }
+        }
+
+        @Override
+        public Object getSelectedItem() {
+            return problemaMedico;
+        }
+    }
+
+    public JComboBox getJcProblemasMedicos() {
+        return jcProblemasMedicos;
+    }
+
+    public JTextArea getJtaObservaciones() {
+        return jtaObservaciones;
+    }
+    
 }
