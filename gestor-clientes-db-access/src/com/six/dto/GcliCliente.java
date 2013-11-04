@@ -45,7 +45,7 @@ public class GcliCliente implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "gcliCliente")
     private List<GcliCardex> gcliCardexList;
     @JoinColumn(name = "ID_PERSONA", referencedColumnName = "ID_PERSONA")
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL)
     private GcliInfPersona idPersona;
 
     public GcliCliente() {

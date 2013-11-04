@@ -103,7 +103,7 @@ public class GcliInfProblemaMedico implements Serializable {
 
     @Override
     public String toString() {
-        return "com.six.dto.GcliInfProblemaMedico[ idProblema=" + idProblema + " ]";
+        return this.descProblema;
     }
     
 }

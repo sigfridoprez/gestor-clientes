@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.six.dto;
 
 import java.io.Serializable;
@@ -34,13 +33,13 @@ import javax.persistence.TableGenerator;
     @NamedQuery(name = "GcliInfDomicilio.findByIdDomicilio", query = "SELECT g FROM GcliInfDomicilio g WHERE g.idDomicilio = :idDomicilio"),
     @NamedQuery(name = "GcliInfDomicilio.findByCalle", query = "SELECT g FROM GcliInfDomicilio g WHERE g.calle = :calle"),
     @NamedQuery(name = "GcliInfDomicilio.findByNumeroExterior", query = "SELECT g FROM GcliInfDomicilio g WHERE g.numeroExterior = :numeroExterior"),
-    @NamedQuery(name = "GcliInfDomicilio.findByNumeroInterior", query = "SELECT g FROM GcliInfDomicilio g WHERE g.numeroInterior = :numeroInterior"),
-    @NamedQuery(name = "GcliInfDomicilio.findByColonia", query = "SELECT g FROM GcliInfDomicilio g WHERE g.colonia = :colonia")})
+    @NamedQuery(name = "GcliInfDomicilio.findByNumeroInterior", query = "SELECT g FROM GcliInfDomicilio g WHERE g.numeroInterior = :numeroInterior")})
 public class GcliInfDomicilio implements Serializable {
+
     private static final long serialVersionUID = 1L;
     @Id
-    @TableGenerator(name = "SEC_DOMICILIO",allocationSize = 1, initialValue = 0)
-    @GeneratedValue(strategy=GenerationType.TABLE, generator = "SEC_DOMICILIO")
+    @TableGenerator(name = "SEC_DOMICILIO", allocationSize = 1, initialValue = 0)
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "SEC_DOMICILIO")
     @Basic(optional = false)
     @Column(name = "ID_DOMICILIO")
     private Long idDomicilio;
@@ -50,8 +49,6 @@ public class GcliInfDomicilio implements Serializable {
     private String numeroExterior;
     @Column(name = "NUMERO_INTERIOR")
     private String numeroInterior;
-    @Column(name = "COLONIA")
-    private String colonia;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idDomicilio")
     private List<GcliInfPersona> gcliInfPersonaList;
     @JoinColumn(name = "CODIGO_POSTAL", referencedColumnName = "CODIGO_POSTAL")
@@ -97,14 +94,6 @@ public class GcliInfDomicilio implements Serializable {
         this.numeroInterior = numeroInterior;
     }
 
-    public String getColonia() {
-        return colonia;
-    }
-
-    public void setColonia(String colonia) {
-        this.colonia = colonia;
-    }
-
     public List<GcliInfPersona> getGcliInfPersonaList() {
         return gcliInfPersonaList;
     }
@@ -145,5 +134,5 @@ public class GcliInfDomicilio implements Serializable {
     public String toString() {
         return "com.six.dto.GcliInfDomicilio[ idDomicilio=" + idDomicilio + " ]";
     }
-    
+
 }

@@ -62,7 +62,7 @@ public class GcliInfPersona implements Serializable {
     @Column(name = "CORREO_ELECTRONICO")
     private String correoElectronico;
     @JoinColumn(name = "ID_DOMICILIO", referencedColumnName = "ID_DOMICILIO")
-    @ManyToOne(optional = true)
+    @ManyToOne(optional = true, cascade = CascadeType.ALL)
     private GcliInfDomicilio idDomicilio;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idPersona")
     private List<GcliCliente> gcliClienteList;
