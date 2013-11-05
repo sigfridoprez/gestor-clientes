@@ -12,7 +12,6 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
-import org.openide.windows.WindowManager;
 
 @ActionID(
         category = "File",
@@ -35,8 +34,6 @@ public final class CreateUsuario implements ActionListener {
         VisorClienteTopComponent tc = VisorClienteTopComponent.findInstance();
         tc.open();
         tc.requestActive();
-        tc.getJtpCliente().setSelectedIndex(0);
-        tc.getJtNombre().requestFocus();
         tc.resetFields();
     }
 }

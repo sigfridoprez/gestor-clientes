@@ -6,6 +6,8 @@
 package com.sig.visorcliente.form;
 
 import com.sig.utilerias.entity.EntityManagerFactory;
+import com.six.dto.GcliCliente;
+import com.six.dto.GcliHistoriaClinica;
 import com.six.dto.GcliInfProblemaMedico;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -26,12 +28,31 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
     /**
      * Creates new form HistoriaClinicaForm
      */
-    public HistoriaClinicaForm() {
+    public HistoriaClinicaForm(Long idCliente) {
         initComponents();
-        EntityManager entityManager = EntityManagerFactory.getEntityManager();
-        TypedQuery<GcliInfProblemaMedico> query = entityManager.createNamedQuery("GcliInfProblemaMedico.findAll", GcliInfProblemaMedico.class);
+        EntityManager em = EntityManagerFactory.getEntityManager();
+        TypedQuery<GcliCliente> queryCliente = em.createNamedQuery("GcliCliente.findByIdCliente", GcliCliente.class);
+        queryCliente.setParameter("idCliente", idCliente);
+        GcliCliente cliente = queryCliente.getSingleResult();
+
+        StringBuilder builder = new StringBuilder("SELECT g FROM GcliInfProblemaMedico g");
+        if (cliente.getGcliHistoriaClinicaList() != null && !cliente.getGcliHistoriaClinicaList().isEmpty()) {
+            builder.append(" where g.idProblema not in(");
+            int cont = 0;
+            for (GcliHistoriaClinica historiaClinica : cliente.getGcliHistoriaClinicaList()) {
+                builder.append(historiaClinica.getGcliInfProblemaMedico().getIdProblema());
+                if (cont < (cliente.getGcliHistoriaClinicaList().size() - 1)) {
+                    builder.append(",");
+                }
+                cont++;
+            }
+            builder.append(")");
+        }
+        System.err.println("Query::" + builder);
+        TypedQuery<GcliInfProblemaMedico> query = em.createQuery(builder.toString(),
+                GcliInfProblemaMedico.class);
         List<GcliInfProblemaMedico> problemas = query.getResultList();
-        ((MyModel)this.jcProblemasMedicos.getModel()).addElements(problemas);
+        ((MyModel) this.jcProblemasMedicos.getModel()).addElements(problemas);
     }
 
     /**
@@ -172,5 +193,5 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
     public JTextArea getJtaObservaciones() {
         return jtaObservaciones;
     }
-    
+
 }

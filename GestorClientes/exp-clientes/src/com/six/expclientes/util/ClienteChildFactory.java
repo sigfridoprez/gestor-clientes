@@ -6,19 +6,13 @@
 package com.six.expclientes.util;
 
 import com.six.dto.GcliCliente;
-import java.beans.IntrospectionException;
-import java.io.IOException;
+import java.awt.Image;
 import java.util.List;
-import javax.swing.Action;
-import org.openide.actions.DeleteAction;
-import org.openide.actions.PropertiesAction;
 import org.openide.nodes.AbstractNode;
-import org.openide.nodes.BeanNode;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
-import org.openide.util.Exceptions;
-import org.openide.util.actions.SystemAction;
+import org.openide.util.ImageUtilities;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -43,7 +37,15 @@ public class ClienteChildFactory extends ChildFactory<GcliCliente> {
 
     @Override
     protected Node createNodeForKey(GcliCliente c) {
-        Node node = new AbstractNode(Children.LEAF, Lookups.singleton(c));
+        Node node = new AbstractNode(Children.LEAF, Lookups.singleton(c)){
+
+            @Override
+            public Image getIcon(int type) {
+                return ImageUtilities.loadImage("/com/six/expclientes/resources/usuario_listado.png");
+            }
+            
+        };
+
         node.setDisplayName(c.getIdPersona().getNombre() + " " + c.getIdPersona().getApellidoPaterno() + " " + c.getIdPersona().getApellidoMaterno());
         node.setShortDescription(c.getIdPersona().getNombre());
         return node;

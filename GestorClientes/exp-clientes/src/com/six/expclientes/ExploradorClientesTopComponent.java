@@ -9,6 +9,7 @@ import com.six.dto.GcliCliente;
 import com.six.expclientes.util.ClienteChildFactory;
 import com.six.expclientes.util.ClienteRootNode;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.swing.SwingUtilities;
@@ -16,11 +17,12 @@ import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.explorer.ExplorerManager;
-import org.openide.nodes.AbstractNode;
+import org.openide.explorer.ExplorerUtils;
 import org.openide.nodes.Children;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor;
+import org.openide.windows.WindowManager;
 
 /**
  * Top component which displays something.
@@ -45,7 +47,9 @@ import org.openide.util.RequestProcessor;
 })
 public final class ExploradorClientesTopComponent extends TopComponent implements ExplorerManager.Provider {
 
-    private static ExplorerManager em = new ExplorerManager();
+    private static final ExplorerManager em = new ExplorerManager();
+    private static final String PREFERRED_ID = "ExploradorClientesTopComponent";
+    private static ExploradorClientesTopComponent instance;
 
     public ExploradorClientesTopComponent() {
         initComponents();
@@ -61,23 +65,10 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
         RequestProcessor.getDefault().post(new Runnable() {
             @Override
             public void run() {
-                readCustomer();
+                refreshNode();
             }
         });
-    }
-
-    private void readCustomer() {
-        EntityManager entityManager = EntityManagerFactory.getEntityManager();
-        final Query query = entityManager.createNamedQuery("GcliCliente.findAll");
-
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                @SuppressWarnings("unchecked")
-                List<GcliCliente> resultList = query.getResultList();
-                em.setRootContext(new AbstractNode(Children.create(new ClienteChildFactory(resultList), true)));
-            }
-        });
+        associateLookup(ExplorerUtils.createLookup(em, getActionMap()));
     }
 
     /**
@@ -94,7 +85,7 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
         jTextField2 = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jTextField3 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        jbBuscar = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         beanTreeView1 = new org.openide.explorer.view.BeanTreeView();
 
@@ -110,10 +101,10 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
 
         jTextField3.setText(org.openide.util.NbBundle.getMessage(ExploradorClientesTopComponent.class, "ExploradorClientesTopComponent.jTextField3.text")); // NOI18N
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/six/expclientes/resources/usuario_buscar.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(ExploradorClientesTopComponent.class, "ExploradorClientesTopComponent.jButton1.text")); // NOI18N
-        jButton1.setToolTipText(org.openide.util.NbBundle.getMessage(ExploradorClientesTopComponent.class, "ExploradorClientesTopComponent.jButton1.text")); // NOI18N
-        jButton1.setPreferredSize(new java.awt.Dimension(50, 50));
+        jbBuscar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/six/expclientes/resources/usuario_buscar.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jbBuscar, org.openide.util.NbBundle.getMessage(ExploradorClientesTopComponent.class, "ExploradorClientesTopComponent.jbBuscar.text")); // NOI18N
+        jbBuscar.setToolTipText(org.openide.util.NbBundle.getMessage(ExploradorClientesTopComponent.class, "ExploradorClientesTopComponent.jbBuscar.text")); // NOI18N
+        jbBuscar.setPreferredSize(new java.awt.Dimension(30, 30));
 
         jPanel1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
@@ -121,22 +112,25 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(beanTreeView1, javax.swing.GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
+            .addComponent(beanTreeView1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(beanTreeView1, javax.swing.GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE)
+            .addComponent(beanTreeView1, javax.swing.GroupLayout.DEFAULT_SIZE, 449, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jbBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -145,11 +139,8 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jTextField2)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
-                            .addComponent(jTextField1)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jTextField3)
+                            .addComponent(jTextField1))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -168,8 +159,8 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
                     .addComponent(jLabel3)
                     .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jbBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -177,7 +168,6 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private org.openide.explorer.view.BeanTreeView beanTreeView1;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -185,13 +175,11 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
+    private javax.swing.JButton jbBuscar;
     // End of variables declaration//GEN-END:variables
+
     @Override
     public void componentOpened() {
-        EntityManager entityManager = EntityManagerFactory.getEntityManager();
-        Query query = entityManager.createNamedQuery("GcliCliente.findAll");
-        List<GcliCliente> resultList = query.getResultList();
-        em.setRootContext(new AbstractNode(Children.create(new ClienteChildFactory(resultList), true)));
     }
 
     @Override
@@ -213,13 +201,44 @@ public final class ExploradorClientesTopComponent extends TopComponent implement
 
     public static void refreshNode() {
         EntityManager entityManager = EntityManagerFactory.getEntityManager();
-        Query query = entityManager.createNamedQuery("GcliCliente.findAll");
-        List<GcliCliente> resultList = query.getResultList();
-        em.setRootContext(new ClienteRootNode(Children.create(new ClienteChildFactory(resultList), true)));
+        final Query query = entityManager.createNamedQuery("GcliCliente.findAll");
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                @SuppressWarnings("unchecked")
+                List<GcliCliente> resultList = query.getResultList();
+//                em.setRootContext(new AbstractNode(Children.create(new ClienteChildFactory(resultList), true)));
+                em.setRootContext(new ClienteRootNode(Children.create(new ClienteChildFactory(resultList), true)));
+            }
+        });
     }
 
     @Override
     public ExplorerManager getExplorerManager() {
         return em;
+    }
+
+    public static synchronized ExploradorClientesTopComponent getDefault() {
+        if (instance == null) {
+            instance = new ExploradorClientesTopComponent();
+        }
+        return instance;
+    }
+
+    public static synchronized ExploradorClientesTopComponent findInstance() {
+        TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
+        if (win == null) {
+            Logger.getLogger(ExploradorClientesTopComponent.class.getName()).warning(
+                    "Cannot find " + PREFERRED_ID + " component. It will not be located properly in the window system.");
+            return getDefault();
+        }
+        if (win instanceof ExploradorClientesTopComponent) {
+            return (ExploradorClientesTopComponent) win;
+        }
+        Logger.getLogger(ExploradorClientesTopComponent.class.getName()).warning(
+                "There seem to be multiple components with the '" + PREFERRED_ID
+                + "' ID. That is a potential source of errors and unexpected behavior.");
+        return getDefault();
     }
 }

@@ -5,10 +5,13 @@
  */
 package com.sig.visorcliente;
 
+import com.sig.utilerias.FuncionesCadena;
 import com.sig.utilerias.FuncionesValidacion;
 import com.sig.utilerias.entity.EntityManagerFactory;
 import com.sig.visorcliente.form.HistoriaClinicaForm;
 import com.six.dto.GcliCliente;
+import com.six.dto.GcliHistoriaClinica;
+import com.six.dto.GcliHistoriaClinicaPK;
 import com.six.dto.GcliInfAsentamiento;
 import com.six.dto.GcliInfCodigoPostal;
 import com.six.dto.GcliInfDomicilio;
@@ -18,8 +21,12 @@ import com.six.expclientes.ExploradorClientesTopComponent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -28,9 +35,10 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.AbstractTableModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -42,6 +50,7 @@ import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.WindowManager;
@@ -78,6 +87,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private final InstanceContent content;
     private GcliCliente cliente;
     private GcliInfCodigoPostal cp;
+    private Lookup.Result result = null;
 
     public JTabbedPane getJtpCliente() {
         return jtpCliente;
@@ -109,13 +119,13 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jtNoExterior.getDocument().addDocumentListener(myDocumentListener);
         jtNoInterior.getDocument().addDocumentListener(myDocumentListener);
         jtCp.getDocument().addDocumentListener(myDocumentListener);
+        jtpCliente.remove(jpCardex);
+        jbAgregarProblemaMedico.setEnabled(false);
 
         //Create a new instance of our SaveCookie implementation:
         impl = new SaveCookieImpl();
-
         //Create a new instance of our dynamic object:
         content = new InstanceContent();
-
         //Add the dynamic object to the TopComponent Lookup:
         associateLookup(new AbstractLookup(content));
     }
@@ -134,7 +144,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel3 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jtProblemasMedicos = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
+        jbAgregarProblemaMedico = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
@@ -199,70 +209,17 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
 
         jScrollPane1.setBorder(null);
 
-        jtProblemasMedicos.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
-            },
-            new String [] {
-                "", "Problema", "Observaciones"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.String.class, java.lang.String.class
-            };
-            boolean[] canEdit = new boolean [] {
-                false, false, false
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
+        jtProblemasMedicos.setModel(new VisorClienteTopComponent.MyModel());
         jtProblemasMedicos.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(jtProblemasMedicos);
-        if (jtProblemasMedicos.getColumnModel().getColumnCount() > 0) {
-            jtProblemasMedicos.getColumnModel().getColumn(0).setMinWidth(20);
-            jtProblemasMedicos.getColumnModel().getColumn(0).setPreferredWidth(20);
-            jtProblemasMedicos.getColumnModel().getColumn(0).setMaxWidth(20);
-            jtProblemasMedicos.getColumnModel().getColumn(0).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title1_1")); // NOI18N
-            jtProblemasMedicos.getColumnModel().getColumn(1).setMinWidth(200);
-            jtProblemasMedicos.getColumnModel().getColumn(1).setPreferredWidth(200);
-            jtProblemasMedicos.getColumnModel().getColumn(1).setMaxWidth(200);
-            jtProblemasMedicos.getColumnModel().getColumn(1).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title0")); // NOI18N
-            jtProblemasMedicos.getColumnModel().getColumn(2).setResizable(false);
-            jtProblemasMedicos.getColumnModel().getColumn(2).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title3")); // NOI18N
-        }
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/sig/visorcliente/resources/agregar.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jButton1.text")); // NOI18N
-        jButton1.setToolTipText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jButton1.toolTipText")); // NOI18N
-        jButton1.setPreferredSize(new java.awt.Dimension(24, 24));
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jbAgregarProblemaMedico.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/sig/visorcliente/resources/agregar.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jbAgregarProblemaMedico, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jbAgregarProblemaMedico.text")); // NOI18N
+        jbAgregarProblemaMedico.setToolTipText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jbAgregarProblemaMedico.toolTipText")); // NOI18N
+        jbAgregarProblemaMedico.setPreferredSize(new java.awt.Dimension(30, 30));
+        jbAgregarProblemaMedico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jbAgregarProblemaMedicoActionPerformed(evt);
             }
         });
 
@@ -271,17 +228,16 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 903, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jbAgregarProblemaMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 238, Short.MAX_VALUE)
+                .addComponent(jbAgregarProblemaMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -303,24 +259,39 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel19, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel19.text")); // NOI18N
 
+        jtNombre.setDocument(new com.sig.utilerias.text.JTextFieldLimit(100));
         jtNombre.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtNombre.text")); // NOI18N
 
+        jtApPaterno.setDocument(new com.sig.utilerias.text.JTextFieldLimit(100));
         jtApPaterno.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtApPaterno.text")); // NOI18N
 
+        jtApMaterno.setDocument(new com.sig.utilerias.text.JTextFieldLimit(100));
         jtApMaterno.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtApMaterno.text")); // NOI18N
 
-        jtTelefono.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtTelefono.text")); // NOI18N
+        try {
+            jtTelefono.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("##-##-##-##")));
+        } catch (java.text.ParseException ex) {
+            ex.printStackTrace();
+        }
         jtTelefono.setPreferredSize(new java.awt.Dimension(100, 19));
 
-        jtCelular.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCelular.text")); // NOI18N
+        try {
+            jtCelular.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("(###)-##-########")));
+        } catch (java.text.ParseException ex) {
+            ex.printStackTrace();
+        }
         jtCelular.setPreferredSize(new java.awt.Dimension(100, 19));
 
+        jtEmail.setDocument(new com.sig.utilerias.text.JTextFieldLimit(50));
         jtEmail.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtEmail.text")); // NOI18N
 
+        jtCalle.setDocument(new com.sig.utilerias.text.JTextFieldLimit(100));
         jtCalle.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCalle.text")); // NOI18N
 
+        jtNoExterior.setDocument(new com.sig.utilerias.text.JTextFieldLimit(50));
         jtNoExterior.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtNoExterior.text")); // NOI18N
 
+        jtNoInterior.setDocument(new com.sig.utilerias.text.JTextFieldLimit(50));
         jtNoInterior.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtNoInterior.text")); // NOI18N
 
         jtCp.setDocument(new com.sig.utilerias.text.JTextFieldLimit(5));
@@ -669,7 +640,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(13, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -774,24 +745,35 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         return instance;
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        final HistoriaClinicaForm clinicaForm = new HistoriaClinicaForm();
+    private void jbAgregarProblemaMedicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbAgregarProblemaMedicoActionPerformed
+        final HistoriaClinicaForm clinicaForm = new HistoriaClinicaForm(this.cliente.getIdCliente());
         JButton ok = new JButton();
         ok.setText("Guardar");
         JButton cancel = new JButton();
         cancel.setText("Cancelar");
 
         ok.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent arg0) {
                 GcliInfProblemaMedico objeto = (GcliInfProblemaMedico) clinicaForm.getJcProblemasMedicos().getModel().getSelectedItem();
-                System.err.println("ob"+objeto.getDescProblema());
+                EntityManager entityManager = EntityManagerFactory.getEntityManager();
+
+                entityManager.getTransaction().begin();
+                GcliHistoriaClinica historiaClinica = new GcliHistoriaClinica();
+                GcliHistoriaClinicaPK pk = new GcliHistoriaClinicaPK(cliente.getIdCliente(), objeto.getIdProblema());
+                historiaClinica.setGcliHistoriaClinicaPK(pk);
+                historiaClinica.setObservaciones(clinicaForm.getJtaObservaciones().getText());
+                entityManager.merge(historiaClinica);
+                entityManager.flush();
+                entityManager.getTransaction().commit();
+                recargarTabla();
             }
         });
 
         NotifyDescriptor nd = new NotifyDescriptor.Confirmation(clinicaForm, "Historia Clinica");
         nd.setOptions(new Object[]{ok, cancel});
         DialogDisplayer.getDefault().notifyLater(nd);
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jbAgregarProblemaMedicoActionPerformed
 
     private void jtCpFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtCpFocusLost
         // TODO add your handling code here:
@@ -826,7 +808,6 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     }//GEN-LAST:event_jtCpFocusLost
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JComboBox jComboBox1;
@@ -873,6 +854,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JTextField jTextField8;
     private javax.swing.JTextField jTextField9;
     private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JButton jbAgregarProblemaMedico;
     private javax.swing.JLabel jlColonia;
     private javax.swing.JLabel jlEstado;
     private javax.swing.JLabel jlMunicipio;
@@ -891,14 +873,37 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JFormattedTextField jtTelefono;
     private javax.swing.JTabbedPane jtpCliente;
     // End of variables declaration//GEN-END:variables
+
     @Override
     public void componentOpened() {
-        // TODO add custom code on component opening
+        RequestProcessor.getDefault().post(new Runnable() {
+            @Override
+            public void run() {
+                readCustomer();
+            }
+        });
+    }
+
+    private void readCustomer() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                TopComponent tc = WindowManager.getDefault().findTopComponent("ExploradorClientesTopComponent");
+                if (tc == null) {
+                    JOptionPane.showConfirmDialog(null, "Top Component no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                result = tc.getLookup().lookupResult(GcliCliente.class);
+                result.addLookupListener(VisorClienteTopComponent.this);
+                resultChanged(new LookupEvent(result));
+            }
+        });
     }
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
+        result.removeLookupListener(this);
+        result = null;
     }
 
     void writeProperties(java.util.Properties p) {
@@ -936,9 +941,12 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jtNoExterior.setText("");
         jtNoInterior.setText("");
         jtCp.setText("");
-        //Se limpia la tabla
-        ((DefaultTableModel) jtProblemasMedicos.getModel()).getDataVector().clear();
+        ((MyModel) jtProblemasMedicos.getModel()).clear();
         resetDatosCp();
+        jbAgregarProblemaMedico.setEnabled(false);
+        jtpCliente.setSelectedIndex(0);
+        jtpCliente.remove(jpCardex);
+        jtNombre.requestFocus();
         cliente = null;
     }
 
@@ -947,10 +955,35 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         Lookup.Result r = (Lookup.Result) lookupEvent.getSource();
         Collection<GcliCliente> coll = r.allInstances();
         if (!coll.isEmpty()) {
-            for (GcliCliente cliente : coll) {
-                this.cliente = cliente;
-//                jTextField1.setText(cust.getName());
-//                jTextField2.setText(cust.getCity());
+            for (GcliCliente gc : coll) {
+                this.cliente = gc;
+                jtNombre.setText(gc.getIdPersona().getNombre());
+                jtApPaterno.setText(gc.getIdPersona().getApellidoPaterno());
+                jtApMaterno.setText(gc.getIdPersona().getApellidoMaterno());
+                jtTelefono.setText(gc.getIdPersona().getTelefonoFijo() != null ? gc.getIdPersona().getTelefonoFijo().toString() : null);
+                jtCelular.setText(gc.getIdPersona().getTelefonoCelular() != null ? gc.getIdPersona().getTelefonoCelular().toString() : null);
+                jtEmail.setText(gc.getIdPersona().getCorreoElectronico());
+                jtCalle.setText(gc.getIdPersona().getIdDomicilio().getCalle());
+                jtNoExterior.setText(gc.getIdPersona().getIdDomicilio().getNumeroExterior());
+                jtNoInterior.setText(gc.getIdPersona().getIdDomicilio().getNumeroInterior());
+                jtCp.setText(gc.getIdPersona().getIdDomicilio().getCodigoPostal().getCodigoPostal());
+                //Colocamos los datos del codigo postal
+                String colonia = "";
+                if (gc.getIdPersona().getIdDomicilio().getCodigoPostal().getGcliInfAsentamientoList() != null) {
+                    for (GcliInfAsentamiento asentamiento : gc.getIdPersona().getIdDomicilio().getCodigoPostal().getGcliInfAsentamientoList()) {
+                        colonia = asentamiento.getCodigoTipoAsentamiento().getNombreTipoAsentamiento() + ": " + asentamiento.getNombreAsentamiento();
+                        break;
+                    }
+                }
+                jlColonia.setText(colonia);
+                jlMunicipio.setText(gc.getIdPersona().getIdDomicilio().getCodigoPostal().getGcliInfMunicipio().getNombreMunicipio());
+                jlEstado.setText(gc.getIdPersona().getIdDomicilio().getCodigoPostal().getGcliInfMunicipio().getGcliInfEstado().getNombreEstado());
+                jbAgregarProblemaMedico.setEnabled(true);
+                //Se recargan los problemas medicos
+                recargarTabla();
+                //Se cargan los datos del cardex
+                jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex);
+                recargaCardex();
             }
         } else {
             resetFields();
@@ -961,6 +994,33 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jlColonia.setText("");
         jlMunicipio.setText("");
         jlEstado.setText("");
+    }
+
+    private void recargarTabla() {
+        EntityManager em = EntityManagerFactory.getEntityManager();
+        final TypedQuery<GcliHistoriaClinica> query = em.createNamedQuery("GcliHistoriaClinica.findByIdCliente", GcliHistoriaClinica.class);
+        query.setParameter("idCliente", cliente.getIdCliente());
+        System.out.println("Inicia" + new Date());
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Inicia:RUN:" + new Date());
+                @SuppressWarnings("unchecked")
+                List<GcliHistoriaClinica> problemasMedicos = query.getResultList();
+                MyModel modelo = (MyModel) jtProblemasMedicos.getModel();
+                if (problemasMedicos != null && !problemasMedicos.isEmpty()) {
+                    modelo.addRows(problemasMedicos);
+                } else {
+                    modelo.clear();
+                }
+                System.out.println("Fin:RUN:" + new Date());
+            }
+        });
+        System.out.println("fin" + new Date());
+    }
+
+    private void recargaCardex() {
+        
     }
 
     private class MyDocumentListener implements DocumentListener {
@@ -987,52 +1047,141 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         @Override
         public void save() throws IOException {
 
-            NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar al cliente \""
-                    + jtNombre.getText() + " (" + jtApPaterno.getText() + ")\"?",
-                    NotifyDescriptor.OK_CANCEL_OPTION,
-                    NotifyDescriptor.QUESTION_MESSAGE);
+            if (validaGuardado()) {
+                NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar al cliente \""
+                        + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText(),
+                        NotifyDescriptor.OK_CANCEL_OPTION,
+                        NotifyDescriptor.QUESTION_MESSAGE);
 
-            Object result = DialogDisplayer.getDefault().notify(message);
+                Object result = DialogDisplayer.getDefault().notify(message);
 
-            if (NotifyDescriptor.YES_OPTION.equals(result)) {
-                fire(false);
-                EntityManager entityManager = EntityManagerFactory.getEntityManager();
-                entityManager.getTransaction().begin();
-                if (cliente != null && cliente.getIdCliente() != null) {
-                    GcliCliente c = entityManager.find(GcliCliente.class, cliente.getIdCliente());
-                    c.getIdPersona().setNombre(jtNombre.getText());
-                    c.getIdPersona().setApellidoPaterno(jtApPaterno.getText());
-                    c.getIdPersona().setApellidoMaterno(jtApMaterno.getText());
-                    c.getIdPersona().setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(jtTelefono.getValue().toString()) : null);
-                    c.getIdPersona().setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(jtCelular.getValue().toString()) : null);
-                    c.getIdPersona().setCorreoElectronico(jtEmail.getText());
-                    c.getIdPersona().getIdDomicilio().setCalle(jtCalle.getText());
-                    c.getIdPersona().getIdDomicilio().setNumeroExterior(jtNoExterior.getText());
-                    c.getIdPersona().getIdDomicilio().setNumeroInterior(jtNoInterior.getText());
-                    c.getIdPersona().getIdDomicilio().setCodigoPostal(cp);
-                    entityManager.getTransaction().commit();
-                } else {
-                    GcliCliente c = new GcliCliente();
-                    GcliInfPersona persona = new GcliInfPersona();
-                    persona.setNombre(jtNombre.getText());
-                    persona.setApellidoPaterno(jtApPaterno.getText());
-                    persona.setApellidoMaterno(jtApMaterno.getText());
-                    persona.setCorreoElectronico(jtEmail.getText());
-                    persona.setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(jtTelefono.getValue().toString()) : null);
-                    persona.setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(jtCelular.getValue().toString()) : null);
-                    GcliInfDomicilio domicilio = new GcliInfDomicilio();
-                    domicilio.setCalle(jtCalle.getText());
-                    domicilio.setNumeroExterior(jtNoExterior.getText());
-                    domicilio.setNumeroInterior(jtNoInterior.getText());
-                    domicilio.setCodigoPostal(cp);
-                    persona.setIdDomicilio(domicilio);
-                    c.setIdPersona(persona);
-                    entityManager.persist(c);
-                    entityManager.getTransaction().commit();
+                if (NotifyDescriptor.YES_OPTION.equals(result)) {
+                    fire(false);
+                    EntityManager entityManager = EntityManagerFactory.getEntityManager();
+                    entityManager.getTransaction().begin();
+                    if (cliente != null && cliente.getIdCliente() != null) {
+                        GcliCliente c = entityManager.find(GcliCliente.class, cliente.getIdCliente());
+                        c.getIdPersona().setNombre(jtNombre.getText());
+                        c.getIdPersona().setApellidoPaterno(jtApPaterno.getText());
+                        c.getIdPersona().setApellidoMaterno(jtApMaterno.getText());
+                        c.getIdPersona().setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(jtTelefono.getValue().toString()) : null);
+                        c.getIdPersona().setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(jtCelular.getValue().toString()) : null);
+                        c.getIdPersona().setCorreoElectronico(jtEmail.getText());
+                        c.getIdPersona().getIdDomicilio().setCalle(jtCalle.getText());
+                        c.getIdPersona().getIdDomicilio().setNumeroExterior(jtNoExterior.getText());
+                        c.getIdPersona().getIdDomicilio().setNumeroInterior(jtNoInterior.getText());
+                        c.getIdPersona().getIdDomicilio().setCodigoPostal(cp);
+                        entityManager.getTransaction().commit();
+                    } else {
+                        GcliCliente c = new GcliCliente();
+                        GcliInfPersona persona = new GcliInfPersona();
+                        persona.setNombre(jtNombre.getText());
+                        persona.setApellidoPaterno(jtApPaterno.getText());
+                        persona.setApellidoMaterno(jtApMaterno.getText());
+                        persona.setCorreoElectronico(jtEmail.getText());
+                        persona.setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(FuncionesCadena.limpiaCadenaTelefono(jtTelefono.getValue().toString())) : null);
+                        persona.setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(FuncionesCadena.limpiaCadenaTelefono(jtCelular.getValue().toString())) : null);
+                        GcliInfDomicilio domicilio = new GcliInfDomicilio();
+                        domicilio.setCalle(jtCalle.getText());
+                        domicilio.setNumeroExterior(jtNoExterior.getText());
+                        domicilio.setNumeroInterior(jtNoInterior.getText());
+                        domicilio.setCodigoPostal(cp);
+                        persona.setIdDomicilio(domicilio);
+                        c.setIdPersona(persona);
+                        cliente = entityManager.merge(c);
+                        entityManager.getTransaction().commit();
+                        jbAgregarProblemaMedico.setEnabled(true);
+                        jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex);
+                    }
+                    ExploradorClientesTopComponent.refreshNode();
                 }
-                ExploradorClientesTopComponent.refreshNode();
             }
-
         }
+
+        private boolean validaGuardado() {
+            if (!FuncionesValidacion.esValido(jtNombre.getText())) {
+                JOptionPane.showMessageDialog(null, "Nombre no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            if (!FuncionesValidacion.esValido(jtApPaterno.getText())) {
+                JOptionPane.showMessageDialog(null, "Apellido paterno no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            if (!FuncionesValidacion.esValido(jtCalle.getText())) {
+                JOptionPane.showMessageDialog(null, "Calle no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            if (!FuncionesValidacion.esValido(jtNoExterior.getText())) {
+                JOptionPane.showMessageDialog(null, "Número exterior no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            if (!FuncionesValidacion.esValido(jtCp.getText())) {
+                JOptionPane.showMessageDialog(null, "Código postal no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    private class MyModel extends AbstractTableModel implements Serializable {
+
+        List<GcliHistoriaClinica> historiaClinica = new ArrayList<GcliHistoriaClinica>();
+
+        public void addRows(List<GcliHistoriaClinica> historiaClinica) {
+            this.historiaClinica.clear();
+            this.historiaClinica.addAll(historiaClinica);
+            fireTableRowsInserted(0, this.historiaClinica.size());
+        }
+
+        public void clear() {
+            this.historiaClinica.clear();
+            fireTableRowsInserted(0, this.historiaClinica.size());
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            switch (column) {
+                case 0:
+                    return org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title0");
+                case 1:
+                    return org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title1");
+                case 2:
+                    return org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTable1.columnModel.title2");
+            }
+            return "";
+        }
+
+        @Override
+        public int getRowCount() {
+            return historiaClinica.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 3;
+        }
+
+        private GcliHistoriaClinica getValueAt(int index) {
+            if (index < this.historiaClinica.size()) {
+                return this.historiaClinica.get(index);
+            }
+            return null;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            if (rowIndex < this.historiaClinica.size()) {
+                switch (columnIndex) {
+                    case 0:
+                        return "";
+                    case 1:
+                        return this.historiaClinica.get(rowIndex).getGcliInfProblemaMedico().getDescProblema();
+                    case 2:
+                        return this.historiaClinica.get(rowIndex).getObservaciones();
+                }
+            }
+            return null;
+        }
+
     }
 }
