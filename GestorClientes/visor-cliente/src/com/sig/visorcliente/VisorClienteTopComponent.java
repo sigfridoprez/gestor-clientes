@@ -273,14 +273,14 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        jtTelefono.setPreferredSize(new java.awt.Dimension(100, 19));
+        jtTelefono.setPreferredSize(new java.awt.Dimension(100, 22));
 
         try {
             jtCelular.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("(###)-##-########")));
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        jtCelular.setPreferredSize(new java.awt.Dimension(100, 19));
+        jtCelular.setPreferredSize(new java.awt.Dimension(100, 22));
 
         jtEmail.setDocument(new com.sig.utilerias.text.JTextFieldLimit(50));
         jtEmail.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtEmail.text")); // NOI18N
@@ -426,9 +426,9 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     .addComponent(jlEstado)
                     .addComponent(jLabel2)
                     .addComponent(jLabel3))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
         jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCliente.TabConstraints.tabTitle"), jpCliente); // NOI18N
@@ -704,8 +704,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel22)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                .addContainerGap(43, Short.MAX_VALUE))
         );
 
         jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex); // NOI18N
