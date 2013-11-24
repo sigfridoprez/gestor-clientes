@@ -1,0 +1,6 @@
+sudo lspci
+/sbin/lspci -nnv|grep Wireless
+zypper install boadcom-wl boadcom-wl-kpm-desktop
+
+sudo /usr/sbin/install_bcm43xx_firmware 
+
