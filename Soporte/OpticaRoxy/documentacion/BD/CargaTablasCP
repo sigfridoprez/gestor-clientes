@@ -1,0 +1,14 @@
+insert into GCLI_INF_ESTADO
+select distinct c_estado, d_estado from cp_tmp order by c_estado, d_estado;
+
+insert into GCLI_INF_MUNICIPIO
+select distinct c_estado,c_mnpio, d_mnpio from cp_tmp order by c_estado,c_mnpio;
+
+insert into gcli_inf_codigo_postal
+select distinct d_codigo,c_estado, c_mnpio from cp_tmp order by d_codigo,c_estado, c_mnpio;
+
+insert into gcli_inf_tipo_asentamiento
+select distinct c_tipo_asenta,d_tipo_asenta from cp_tmp order by c_tipo_asenta;
+
+insert into GCLI_INF_ASENTAMIENTO
+select distinct d_codigo, id_asenta_cpcons,c_tipo_asenta,d_asenta from cp_tmp order by d_codigo, id_asenta_cpcons,c_tipo_asenta;
