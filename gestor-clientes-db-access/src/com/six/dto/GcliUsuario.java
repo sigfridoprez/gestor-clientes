@@ -142,7 +142,7 @@ public class GcliUsuario implements Serializable {
 
     @Override
     public String toString() {
-        return "com.six.dto.GcliUsuario[ idUsuario=" + idUsuario + " ]";
+        return this.getIdPersona().getNombre() + " " + this.getIdPersona().getApellidoPaterno() + " " + this.getIdPersona().getApellidoMaterno();
     }
     
 }
