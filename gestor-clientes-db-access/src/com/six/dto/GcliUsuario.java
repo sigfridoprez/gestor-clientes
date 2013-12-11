@@ -144,5 +144,5 @@ public class GcliUsuario implements Serializable {
     public String toString() {
         return this.getIdPersona().getNombre() + " " + this.getIdPersona().getApellidoPaterno() + " " + this.getIdPersona().getApellidoMaterno();
     }
-    
+
 }

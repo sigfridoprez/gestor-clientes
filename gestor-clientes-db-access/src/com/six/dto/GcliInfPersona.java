@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.six.dto;
 
 import java.io.Serializable;
@@ -42,8 +41,8 @@ import javax.persistence.TableGenerator;
 public class GcliInfPersona implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
-    @TableGenerator(name = "SEC_PERSONA",allocationSize = 1, initialValue = 0)
-    @GeneratedValue(strategy=GenerationType.TABLE, generator = "SEC_PERSONA")
+    @TableGenerator(name = "SEC_PERSONA", allocationSize = 1, initialValue = 0)
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "SEC_PERSONA")
     @Basic(optional = false)
     @Column(name = "ID_PERSONA")
     private Long idPersona;
@@ -56,9 +55,9 @@ public class GcliInfPersona implements Serializable {
     @Column(name = "APELLIDO_MATERNO")
     private String apellidoMaterno;
     @Column(name = "TELEFONO_FIJO")
-    private BigInteger telefonoFijo;
+    private String telefonoFijo;
     @Column(name = "TELEFONO_CELULAR")
-    private BigInteger telefonoCelular;
+    private String telefonoCelular;
     @Column(name = "CORREO_ELECTRONICO")
     private String correoElectronico;
     @JoinColumn(name = "ID_DOMICILIO", referencedColumnName = "ID_DOMICILIO")
@@ -114,19 +113,19 @@ public class GcliInfPersona implements Serializable {
         this.apellidoMaterno = apellidoMaterno;
     }
 
-    public BigInteger getTelefonoFijo() {
+    public String getTelefonoFijo() {
         return telefonoFijo;
     }
 
-    public void setTelefonoFijo(BigInteger telefonoFijo) {
+    public void setTelefonoFijo(String telefonoFijo) {
         this.telefonoFijo = telefonoFijo;
     }
 
-    public BigInteger getTelefonoCelular() {
+    public String getTelefonoCelular() {
         return telefonoCelular;
     }
 
-    public void setTelefonoCelular(BigInteger telefonoCelular) {
+    public void setTelefonoCelular(String telefonoCelular) {
         this.telefonoCelular = telefonoCelular;
     }
 
@@ -186,5 +185,5 @@ public class GcliInfPersona implements Serializable {
     public String toString() {
         return "com.six.dto.GcliInfPersona[ idPersona=" + idPersona + " ]";
     }
-    
+
 }
