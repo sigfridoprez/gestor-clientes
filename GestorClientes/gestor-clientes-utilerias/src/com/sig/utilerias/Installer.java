@@ -7,7 +7,6 @@ package com.sig.utilerias;
 
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.sig.utilerias.entity.EntityManagerFactory;
-import static java.lang.ProcessBuilder.Redirect.from;
 import java.util.Date;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
