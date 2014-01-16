@@ -8,6 +8,7 @@ package com.sig.visorcliente.form;
 import com.sig.utilerias.entity.EntityManagerFactory;
 import com.six.dto.GcliCliente;
 import com.six.dto.GcliHistoriaClinica;
+import com.six.dto.GcliHistoriaClinicaPK;
 import com.six.dto.GcliInfProblemaMedico;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,39 +24,19 @@ import javax.swing.MutableComboBoxModel;
  *
  * @author sigfrido
  */
-public class HistoriaClinicaForm extends javax.swing.JPanel {
+public class EditorObservacionesForm extends javax.swing.JPanel {
+
+    private GcliHistoriaClinicaPK pk;
 
     /**
      * Creates new form HistoriaClinicaForm
      */
-    public HistoriaClinicaForm(Long idCliente) {
+    public EditorObservacionesForm(GcliHistoriaClinicaPK pk) {
         initComponents();
         EntityManager em = EntityManagerFactory.getEntityManager();
-        TypedQuery<GcliCliente> queryCliente = em.createNamedQuery("GcliCliente.findByIdCliente", GcliCliente.class);
-        queryCliente.setParameter("idCliente", idCliente);
-        GcliCliente cliente = queryCliente.getSingleResult();
-
-        StringBuilder builder = new StringBuilder("SELECT g FROM GcliInfProblemaMedico g");
-        if (cliente.getGcliHistoriaClinicaList() != null && !cliente.getGcliHistoriaClinicaList().isEmpty()) {
-            builder.append(" where g.idProblema not in(");
-            int cont = 0;
-            for (GcliHistoriaClinica historiaClinica : cliente.getGcliHistoriaClinicaList()) {
-                builder.append(historiaClinica.getGcliInfProblemaMedico().getIdProblema());
-                if (cont < (cliente.getGcliHistoriaClinicaList().size() - 1)) {
-                    builder.append(",");
-                }
-                cont++;
-            }
-            builder.append(")");
-        }
-        System.err.println("Query::" + builder);
-        TypedQuery<GcliInfProblemaMedico> query = em.createQuery(builder.toString(),
-                GcliInfProblemaMedico.class);
-        List<GcliInfProblemaMedico> problemas = query.getResultList();
-        ((MyModel) this.jcProblemasMedicos.getModel()).addElements(problemas);
-        if (problemas.size() > 0) {
-            jcProblemasMedicos.setSelectedIndex(0);
-        }
+        GcliHistoriaClinica historiaClinica = em.find(GcliHistoriaClinica.class, pk);
+        jtaObservaciones.setText(historiaClinica.getObservaciones());
+        this.pk = pk;
     }
 
     /**
@@ -67,23 +48,16 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jcProblemasMedicos = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jtaObservaciones = new javax.swing.JTextArea();
-        jLabel2 = new javax.swing.JLabel();
 
-        jcProblemasMedicos.setModel(new HistoriaClinicaForm.MyModel());
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(HistoriaClinicaForm.class, "HistoriaClinicaForm.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(EditorObservacionesForm.class, "EditorObservacionesForm.jLabel1.text")); // NOI18N
         jLabel1.setPreferredSize(new java.awt.Dimension(120, 15));
 
         jtaObservaciones.setColumns(20);
         jtaObservaciones.setRows(5);
         jScrollPane1.setViewportView(jtaObservaciones);
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(HistoriaClinicaForm.class, "HistoriaClinicaForm.jLabel2.text")); // NOI18N
-        jLabel2.setPreferredSize(new java.awt.Dimension(120, 15));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -91,36 +65,26 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jcProblemasMedicos, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jcProblemasMedicos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 116, Short.MAX_VALUE))
+                        .addGap(0, 130, Short.MAX_VALUE)))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JComboBox jcProblemasMedicos;
     private javax.swing.JTextArea jtaObservaciones;
     // End of variables declaration//GEN-END:variables
 
@@ -185,10 +149,6 @@ public class HistoriaClinicaForm extends javax.swing.JPanel {
         public Object getSelectedItem() {
             return problemaMedico;
         }
-    }
-
-    public JComboBox getJcProblemasMedicos() {
-        return jcProblemasMedicos;
     }
 
     public JTextArea getJtaObservaciones() {

@@ -5,11 +5,13 @@
  */
 package com.sig.visorcliente;
 
-import com.sig.utilerias.FuncionesCadena;
 import com.sig.utilerias.FuncionesValidacion;
 import com.sig.utilerias.entity.EntityManagerFactory;
+import com.sig.visorcliente.form.EditorObservacionesForm;
 import com.sig.visorcliente.form.HistoriaClinicaForm;
+import com.sig.visorcliente.table.TextAreaEditor;
 import com.six.dto.GcliCardex;
+import com.six.dto.GcliCardexPK;
 import com.six.dto.GcliCliente;
 import com.six.dto.GcliHistoriaClinica;
 import com.six.dto.GcliHistoriaClinicaPK;
@@ -20,11 +22,13 @@ import com.six.dto.GcliInfPersona;
 import com.six.dto.GcliInfProblemaMedico;
 import com.six.dto.GcliUsuario;
 import com.six.expclientes.ExploradorClientesTopComponent;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -34,15 +38,22 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.swing.AbstractListModel;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.MutableComboBoxModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -52,11 +63,11 @@ import org.openide.cookies.SaveCookie;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
+import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
@@ -87,7 +98,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private final SaveCookieImpl impl;
     private final InstanceContent content;
     private GcliCliente cliente;
-    private GcliInfCodigoPostal cp;
+    //private GcliInfCodigoPostal cp;
     private Lookup.Result result = null;
 
     public JTabbedPane getJtpCliente() {
@@ -122,6 +133,59 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jtCp.getDocument().addDocumentListener(myDocumentListener);
         jtpCliente.remove(jpCardex);
         jbAgregarProblemaMedico.setEnabled(false);
+
+        this.jtProblemasMedicos.setRowHeight(100);
+
+        this.jtProblemasMedicos.getColumnModel().getColumn(0).setPreferredWidth(50);
+        this.jtProblemasMedicos.getColumnModel().getColumn(0).setCellRenderer(new ButtonRenderer());
+        this.jtProblemasMedicos.getColumnModel().getColumn(0).setCellEditor(new ButtonEditor());
+
+        this.jtProblemasMedicos.getColumnModel().getColumn(1).setPreferredWidth(400);
+
+        this.jtProblemasMedicos.getColumnModel().getColumn(2).setPreferredWidth(800);
+        this.jtProblemasMedicos.getColumnModel().getColumn(2).setCellEditor(new TextAreaEditor());
+        this.jtProblemasMedicos.getColumnModel().getColumn(2).setCellRenderer(new com.sig.visorcliente.table.TextAreaRenderer());
+
+        this.jtProblemasMedicos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    JTable target = (JTable) e.getSource();
+                    int row = target.getSelectedRow();
+                    int column = target.getSelectedColumn();
+                    //JOptionPane.showMessageDialog(null, "row::"+row+" column::"+column);
+                    if (column == 1 || column == 2) {
+                        MyModel modelo = (MyModel) jtProblemasMedicos.getModel();
+                        final GcliHistoriaClinica historia = modelo.getValueAt(row);
+                        final EditorObservacionesForm observacionesForm = new EditorObservacionesForm(historia.getGcliHistoriaClinicaPK());
+                        JButton ok = new JButton();
+                        ok.setText("Guardar");
+                        JButton cancel = new JButton();
+                        cancel.setText("Cancelar");
+
+                        ok.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent arg0) {
+                                EntityManager entityManager = EntityManagerFactory.getEntityManager();
+
+                                entityManager.getTransaction().begin();
+                                GcliHistoriaClinica historiaClinica = entityManager.find(GcliHistoriaClinica.class, historia.getGcliHistoriaClinicaPK());
+
+                                historiaClinica.setObservaciones(observacionesForm.getJtaObservaciones().getText());
+                                entityManager.merge(historiaClinica);
+                                entityManager.flush();
+                                entityManager.getTransaction().commit();
+                                recargarTabla();
+                            }
+                        });
+
+                        NotifyDescriptor nd = new NotifyDescriptor.Confirmation(observacionesForm, "Historia Clinica");
+                        nd.setOptions(new Object[]{ok, cancel});
+                        DialogDisplayer.getDefault().notifyLater(nd);
+                    }
+                }
+            }
+        });
 
         //Create a new instance of our SaveCookie implementation:
         impl = new SaveCookieImpl();
@@ -175,7 +239,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jpDetalleCardex = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel11 = new javax.swing.JLabel();
-        jTextField9 = new javax.swing.JTextField();
+        jtGraduacionOD = new javax.swing.JTextField();
         jLabel20 = new javax.swing.JLabel();
         jTextField10 = new javax.swing.JTextField();
         jLabel21 = new javax.swing.JLabel();
@@ -192,7 +256,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jTextField8 = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jLabel29 = new javax.swing.JLabel();
-        jTextField13 = new javax.swing.JTextField();
+        jtGraduacionOI = new javax.swing.JTextField();
         jLabel30 = new javax.swing.JLabel();
         jTextField14 = new javax.swing.JTextField();
         jLabel31 = new javax.swing.JLabel();
@@ -203,7 +267,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel1 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jtCardex = new javax.swing.JTable();
-        jButton3 = new javax.swing.JButton();
+        jbCardex = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel1.text")); // NOI18N
@@ -228,7 +292,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 903, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 905, Short.MAX_VALUE)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(jbAgregarProblemaMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -237,8 +301,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addComponent(jbAgregarProblemaMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 232, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 252, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -274,14 +338,14 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        jtTelefono.setPreferredSize(new java.awt.Dimension(100, 22));
+        jtTelefono.setPreferredSize(new java.awt.Dimension(100, 23));
 
         try {
             jtCelular.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.MaskFormatter("(###)-##-########")));
         } catch (java.text.ParseException ex) {
             ex.printStackTrace();
         }
-        jtCelular.setPreferredSize(new java.awt.Dimension(100, 22));
+        jtCelular.setPreferredSize(new java.awt.Dimension(100, 23));
 
         jtEmail.setDocument(new com.sig.utilerias.text.JTextFieldLimit(50));
         jtEmail.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtEmail.text")); // NOI18N
@@ -362,27 +426,25 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jtNoInterior))
                     .addGroup(jpClienteLayout.createSequentialGroup()
+                        .addGap(107, 107, 107)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jlMunicipio, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jlEstado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jpClienteLayout.createSequentialGroup()
                         .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jpClienteLayout.createSequentialGroup()
-                                .addComponent(jtCp, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jlColonia, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(jpClienteLayout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jlMunicipio, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jlEstado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                        .addComponent(jtCp, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(12, 12, 12)
+                        .addComponent(jlColonia, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jpClienteLayout.setVerticalGroup(
             jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jpClienteLayout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(jtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -416,11 +478,15 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel18)
                     .addComponent(jtNoInterior, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel19)
-                    .addComponent(jtCp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jlColonia))
+                .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jpClienteLayout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addComponent(jlColonia))
+                    .addGroup(jpClienteLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel19)
+                            .addComponent(jtCp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpClienteLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jlMunicipio)
@@ -428,8 +494,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     .addComponent(jLabel2)
                     .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(21, Short.MAX_VALUE))
+                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCliente.TabConstraints.tabTitle"), jpCliente); // NOI18N
@@ -446,8 +512,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         org.openide.awt.Mnemonics.setLocalizedText(jLabel11, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel11.text")); // NOI18N
         jLabel11.setPreferredSize(new java.awt.Dimension(130, 15));
 
-        jTextField9.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField9.text")); // NOI18N
-        jTextField9.setPreferredSize(new java.awt.Dimension(200, 22));
+        jtGraduacionOD.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtGraduacionOD.text")); // NOI18N
+        jtGraduacionOD.setPreferredSize(new java.awt.Dimension(200, 22));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel20, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel20.text")); // NOI18N
         jLabel20.setPreferredSize(new java.awt.Dimension(130, 15));
@@ -472,7 +538,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jTextField9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtGraduacionOD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -485,7 +551,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jtGraduacionOD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -528,8 +594,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         org.openide.awt.Mnemonics.setLocalizedText(jLabel29, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel29.text")); // NOI18N
         jLabel29.setPreferredSize(new java.awt.Dimension(130, 15));
 
-        jTextField13.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField13.text")); // NOI18N
-        jTextField13.setPreferredSize(new java.awt.Dimension(200, 22));
+        jtGraduacionOI.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtGraduacionOI.text")); // NOI18N
+        jtGraduacionOI.setPreferredSize(new java.awt.Dimension(200, 22));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel30, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel30.text")); // NOI18N
         jLabel30.setPreferredSize(new java.awt.Dimension(130, 15));
@@ -554,7 +620,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(jTextField13, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtGraduacionOI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -567,7 +633,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField13, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jtGraduacionOI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -678,10 +744,10 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jtCardex.getColumnModel().getColumn(1).setPreferredWidth(250);
         jtCardex.getColumnModel().getColumn(1).setHeaderValue(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCardex.columnModel.title1")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(jButton3, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jButton3.text")); // NOI18N
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        org.openide.awt.Mnemonics.setLocalizedText(jbCardex, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jbCardex.text")); // NOI18N
+        jbCardex.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                jbCardexActionPerformed(evt);
             }
         });
 
@@ -696,7 +762,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jbCardex, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(60, 60, 60))
         );
@@ -707,7 +773,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton3)
+                        .addComponent(jbCardex)
                         .addGap(3, 3, 3)
                         .addComponent(jButton2)
                         .addContainerGap(72, Short.MAX_VALUE))))
@@ -718,11 +784,11 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jpCardexLayout.setHorizontalGroup(
             jpCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jpCardexLayout.createSequentialGroup()
-                .addContainerGap(23, Short.MAX_VALUE)
+                .addContainerGap(24, Short.MAX_VALUE)
                 .addGroup(jpCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jpContenido, javax.swing.GroupLayout.DEFAULT_SIZE, 893, Short.MAX_VALUE))
-                .addContainerGap(23, Short.MAX_VALUE))
+                .addContainerGap(24, Short.MAX_VALUE))
         );
         jpCardexLayout.setVerticalGroup(
             jpCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -773,9 +839,36 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         final HistoriaClinicaForm clinicaForm = new HistoriaClinicaForm(this.cliente.getIdCliente());
         JButton ok = new JButton();
         ok.setText("Guardar");
+        ok.setEnabled(false);
         JButton cancel = new JButton();
         cancel.setText("Cancelar");
 
+
+        EntityManager em = EntityManagerFactory.getEntityManager();
+
+        TypedQuery<GcliCliente> queryCliente = em.createNamedQuery("GcliCliente.findByIdCliente", GcliCliente.class);
+        queryCliente.setParameter("idCliente", cliente.getIdCliente());
+        cliente = queryCliente.getSingleResult();
+        StringBuilder builder = new StringBuilder("SELECT g FROM GcliInfProblemaMedico g");
+        if (cliente.getGcliHistoriaClinicaList() != null && !cliente.getGcliHistoriaClinicaList().isEmpty()) {
+            builder.append(" where g.idProblema not in(");
+            int cont = 0;
+            for (GcliHistoriaClinica historiaClinica : cliente.getGcliHistoriaClinicaList()) {
+                builder.append(historiaClinica.getGcliInfProblemaMedico().getIdProblema());
+                if (cont < (cliente.getGcliHistoriaClinicaList().size() - 1)) {
+                    builder.append(",");
+                }
+                cont++;
+            }
+            builder.append(")");
+        }
+        TypedQuery<GcliInfProblemaMedico> query = em.createQuery(builder.toString(),
+                GcliInfProblemaMedico.class);
+        List<GcliInfProblemaMedico> problemas = query.getResultList();
+        if (problemas.size() > 0) {
+            ok.setEnabled(true);
+        }
+        fire(false);
         ok.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
@@ -805,6 +898,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             EntityManager entityManager = EntityManagerFactory.getEntityManager();
             TypedQuery<GcliInfCodigoPostal> query = entityManager.createNamedQuery("GcliInfCodigoPostal.findByCodigoPostal", GcliInfCodigoPostal.class);
             query.setParameter("codigoPostal", jtCp.getText());
+            GcliInfCodigoPostal cp;
             try {
                 cp = query.getSingleResult();
             } catch (NoResultException e) {
@@ -831,7 +925,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         }
     }//GEN-LAST:event_jtCpFocusLost
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void jbCardexActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbCardexActionPerformed
         EntityManager em = EntityManagerFactory.getEntityManager();
         jpContenido.add(jpDetalleCardex);
 
@@ -842,10 +936,12 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         List<GcliUsuario> usuarios = queryCliente.getResultList();
         ((MyModelJcUsuario) this.jcAtendio.getModel()).addElements(usuarios);
         jpContenido.repaint();
-    }//GEN-LAST:event_jButton3ActionPerformed
+        //Listo para Guardar la información
+        fire(true);
+
+    }//GEN-LAST:event_jbCardexActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JFormattedTextField jFormattedTextField12;
     private javax.swing.JFormattedTextField jFormattedTextField4;
     private javax.swing.JFormattedTextField jFormattedTextField5;
@@ -882,12 +978,11 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField13;
     private javax.swing.JTextField jTextField14;
     private javax.swing.JTextField jTextField8;
-    private javax.swing.JTextField jTextField9;
     private javax.swing.JTextPane jTextPane1;
     private javax.swing.JButton jbAgregarProblemaMedico;
+    private javax.swing.JButton jbCardex;
     private javax.swing.JComboBox jcAtendio;
     private com.toedter.calendar.JDateChooser jdFechaCardex;
     private javax.swing.JLabel jlColonia;
@@ -904,6 +999,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JFormattedTextField jtCelular;
     private javax.swing.JTextField jtCp;
     private javax.swing.JFormattedTextField jtEmail;
+    private javax.swing.JTextField jtGraduacionOD;
+    private javax.swing.JTextField jtGraduacionOI;
     private javax.swing.JTextField jtNoExterior;
     private javax.swing.JTextField jtNoInterior;
     private javax.swing.JTextField jtNombre;
@@ -945,15 +1042,11 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     }
 
     void writeProperties(java.util.Properties p) {
-        // better to version settings since initial version as advocated at
-        // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 
     public void fire(boolean modified) {
@@ -998,8 +1091,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 jtNombre.setText(gc.getIdPersona().getNombre());
                 jtApPaterno.setText(gc.getIdPersona().getApellidoPaterno());
                 jtApMaterno.setText(gc.getIdPersona().getApellidoMaterno());
-                jtTelefono.setText(gc.getIdPersona().getTelefonoFijo() != null ? gc.getIdPersona().getTelefonoFijo().toString() : null);
-                jtCelular.setText(gc.getIdPersona().getTelefonoCelular() != null ? gc.getIdPersona().getTelefonoCelular().toString() : null);
+                jtTelefono.setText(gc.getIdPersona().getTelefonoFijo());
+                jtCelular.setText(gc.getIdPersona().getTelefonoCelular());
                 jtEmail.setText(gc.getIdPersona().getCorreoElectronico());
                 jtCalle.setText(gc.getIdPersona().getIdDomicilio().getCalle());
                 jtNoExterior.setText(gc.getIdPersona().getIdDomicilio().getNumeroExterior());
@@ -1099,55 +1192,83 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
 
         @Override
         public void save() throws IOException {
+            int tab = jtpCliente.getSelectedIndex();
+            switch (tab) {
+                case 0:
+                    if (validaGuardado()) {
+                        NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar al cliente \""
+                                + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText() + "\"",
+                                NotifyDescriptor.OK_CANCEL_OPTION,
+                                NotifyDescriptor.QUESTION_MESSAGE);
 
-            if (validaGuardado()) {
-                NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar al cliente \""
-                        + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText(),
-                        NotifyDescriptor.OK_CANCEL_OPTION,
-                        NotifyDescriptor.QUESTION_MESSAGE);
+                        Object result = DialogDisplayer.getDefault().notify(message);
 
-                Object result = DialogDisplayer.getDefault().notify(message);
-
-                if (NotifyDescriptor.YES_OPTION.equals(result)) {
-                    fire(false);
-                    EntityManager entityManager = EntityManagerFactory.getEntityManager();
-                    entityManager.getTransaction().begin();
-                    if (cliente != null && cliente.getIdCliente() != null) {
-                        GcliCliente c = entityManager.find(GcliCliente.class, cliente.getIdCliente());
-                        c.getIdPersona().setNombre(jtNombre.getText());
-                        c.getIdPersona().setApellidoPaterno(jtApPaterno.getText());
-                        c.getIdPersona().setApellidoMaterno(jtApMaterno.getText());
-                        c.getIdPersona().setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(jtTelefono.getValue().toString()) : null);
-                        c.getIdPersona().setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(jtCelular.getValue().toString()) : null);
-                        c.getIdPersona().setCorreoElectronico(jtEmail.getText());
-                        c.getIdPersona().getIdDomicilio().setCalle(jtCalle.getText());
-                        c.getIdPersona().getIdDomicilio().setNumeroExterior(jtNoExterior.getText());
-                        c.getIdPersona().getIdDomicilio().setNumeroInterior(jtNoInterior.getText());
-                        c.getIdPersona().getIdDomicilio().setCodigoPostal(cp);
-                        entityManager.getTransaction().commit();
-                    } else {
-                        GcliCliente c = new GcliCliente();
-                        GcliInfPersona persona = new GcliInfPersona();
-                        persona.setNombre(jtNombre.getText());
-                        persona.setApellidoPaterno(jtApPaterno.getText());
-                        persona.setApellidoMaterno(jtApMaterno.getText());
-                        persona.setCorreoElectronico(jtEmail.getText());
-                        persona.setTelefonoFijo(jtTelefono.getValue() != null ? new BigInteger(FuncionesCadena.limpiaCadenaTelefono(jtTelefono.getValue().toString())) : null);
-                        persona.setTelefonoCelular(jtCelular.getValue() != null ? new BigInteger(FuncionesCadena.limpiaCadenaTelefono(jtCelular.getValue().toString())) : null);
-                        GcliInfDomicilio domicilio = new GcliInfDomicilio();
-                        domicilio.setCalle(jtCalle.getText());
-                        domicilio.setNumeroExterior(jtNoExterior.getText());
-                        domicilio.setNumeroInterior(jtNoInterior.getText());
-                        domicilio.setCodigoPostal(cp);
-                        persona.setIdDomicilio(domicilio);
-                        c.setIdPersona(persona);
-                        cliente = entityManager.merge(c);
-                        entityManager.getTransaction().commit();
-                        jbAgregarProblemaMedico.setEnabled(true);
-                        jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex);
+                        if (NotifyDescriptor.YES_OPTION.equals(result)) {
+                            fire(false);
+                            EntityManager entityManager = EntityManagerFactory.getEntityManager();
+                            entityManager.getTransaction().begin();
+                            GcliInfCodigoPostal cp = entityManager.find(GcliInfCodigoPostal.class, jtCp.getText());
+                            if (cliente != null && cliente.getIdCliente() != null) {
+                                GcliCliente c = entityManager.find(GcliCliente.class, cliente.getIdCliente());
+                                c.getIdPersona().setNombre(jtNombre.getText());
+                                c.getIdPersona().setApellidoPaterno(jtApPaterno.getText());
+                                c.getIdPersona().setApellidoMaterno(jtApMaterno.getText());
+                                c.getIdPersona().setTelefonoFijo(jtTelefono.getText());
+                                c.getIdPersona().setTelefonoCelular(jtCelular.getText());
+                                c.getIdPersona().setCorreoElectronico(jtEmail.getText());
+                                c.getIdPersona().getIdDomicilio().setCalle(jtCalle.getText());
+                                c.getIdPersona().getIdDomicilio().setNumeroExterior(jtNoExterior.getText());
+                                c.getIdPersona().getIdDomicilio().setNumeroInterior(jtNoInterior.getText());
+                                c.getIdPersona().getIdDomicilio().setCodigoPostal(cp);
+                                entityManager.merge(c);
+                                entityManager.getTransaction().commit();
+                            } else {
+                                GcliCliente c = new GcliCliente();
+                                GcliInfPersona persona = new GcliInfPersona();
+                                persona.setNombre(jtNombre.getText());
+                                persona.setApellidoPaterno(jtApPaterno.getText());
+                                persona.setApellidoMaterno(jtApMaterno.getText());
+                                persona.setCorreoElectronico(jtEmail.getText());
+                                persona.setTelefonoFijo(jtTelefono.getText());
+                                persona.setTelefonoCelular(jtCelular.getText());
+                                GcliInfDomicilio domicilio = new GcliInfDomicilio();
+                                domicilio.setCalle(jtCalle.getText());
+                                domicilio.setNumeroExterior(jtNoExterior.getText());
+                                domicilio.setNumeroInterior(jtNoInterior.getText());
+                                domicilio.setCodigoPostal(cp);
+                                persona.setIdDomicilio(domicilio);
+                                c.setIdPersona(persona);
+                                cliente = entityManager.merge(c);
+                                entityManager.getTransaction().commit();
+                                jbAgregarProblemaMedico.setEnabled(true);
+                                jtpCliente.addTab(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class,
+                                        "VisorClienteTopComponent.jpCardex.TabConstraints.tabTitle"), jpCardex);
+                            }
+                            ExploradorClientesTopComponent.refreshNode();
+                        }
                     }
-                    ExploradorClientesTopComponent.refreshNode();
-                }
+                    break;
+                case 1:
+                    if (validaGuardadoCardex()) {
+                        NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar el cardex del cliente: \""
+                                + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText() + "\"",
+                                NotifyDescriptor.OK_CANCEL_OPTION,
+                                NotifyDescriptor.QUESTION_MESSAGE);
+
+                        Object result = DialogDisplayer.getDefault().notify(message);
+                        if (NotifyDescriptor.YES_OPTION.equals(result)) {
+                            fire(false);
+                            EntityManager entityManager = EntityManagerFactory.getEntityManager();
+                            entityManager.getTransaction().begin();
+                            cliente = entityManager.find(GcliCliente.class, cliente.getIdCliente());
+                            List<GcliCardex> cardexs = cliente.getGcliCardexList();
+                            GcliCardex cardex = new GcliCardex(new GcliCardexPK(cliente.getIdCliente(), cardexs.size()), jdFechaCardex.getDate(), false, jtGraduacionOD.getText(), jtGraduacionOI.getText());
+                            cardexs.add(cardex);
+                            entityManager.merge(cliente);
+                            entityManager.getTransaction().commit();
+                        }
+                    }
+                    break;
             }
         }
 
@@ -1170,6 +1291,18 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             }
             if (!FuncionesValidacion.esValido(jtCp.getText())) {
                 JOptionPane.showMessageDialog(null, "Código postal no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            return true;
+        }
+
+        private boolean validaGuardadoCardex() {
+            if (!FuncionesValidacion.esValido(jtGraduacionOD.getText())) {
+                JOptionPane.showMessageDialog(null, "Graduación del ojo derecho no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            if (!FuncionesValidacion.esValido(jtGraduacionOI.getText())) {
+                JOptionPane.showMessageDialog(null, "Graduación del ojo izquierdo no puede ser nulo o vacio", "Error", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
             return true;
@@ -1226,7 +1359,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             if (rowIndex < this.historiaClinica.size()) {
                 switch (columnIndex) {
                     case 0:
-                        return "";
+                        return this.historiaClinica.get(rowIndex).getGcliInfProblemaMedico();
                     case 1:
                         return this.historiaClinica.get(rowIndex).getGcliInfProblemaMedico().getDescProblema();
                     case 2:
@@ -1234,6 +1367,21 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 }
             }
             return null;
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            if (rowIndex < this.historiaClinica.size()) {
+                switch (columnIndex) {
+                    case 0:
+                        return true;
+                    case 1:
+                        return false;
+                    case 2:
+                        return false;
+                }
+            }
+            return super.isCellEditable(rowIndex, columnIndex);
         }
     }
 
@@ -1355,6 +1503,118 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         @Override
         public Object getSelectedItem() {
             return gcliUsuario;
+        }
+    }
+
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (isSelected) {
+                setForeground(table.getSelectionForeground());
+                setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(table.getForeground());
+                setBackground(UIManager.getColor("Button.background"));
+            }
+            setToolTipText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCardex.columnModel.title0"));
+            setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/sig/visorcliente/resources/eliminar.png")));
+            return this;
+        }
+    }
+
+    class TextAreaRenderer implements TableCellRenderer {
+
+        private JScrollPane scrollPane;
+        private JTextArea textArea;
+
+        public TextAreaRenderer() {
+            setOpaque(true);
+            textArea = new JTextArea();
+            scrollPane = new JScrollPane(textArea);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (isSelected) {
+                setForeground(table.getSelectionForeground());
+                setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(table.getForeground());
+                setBackground(UIManager.getColor("Button.background"));
+            }
+            textArea.setText((value == null) ? "" : value.toString());
+            return scrollPane;
+        }
+    }
+
+    class ButtonEditor extends DefaultCellEditor {
+
+        protected JButton button;
+        private boolean isPushed;
+        private GcliInfProblemaMedico problemaMedico;
+
+        public ButtonEditor() {
+            super(new JCheckBox());
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped();
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            if (isSelected) {
+                button.setForeground(table.getSelectionForeground());
+                button.setBackground(table.getSelectionBackground());
+            } else {
+                button.setForeground(table.getForeground());
+                button.setBackground(table.getBackground());
+            }
+            isPushed = true;
+            problemaMedico = (GcliInfProblemaMedico) value;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                int resp = JOptionPane.showConfirmDialog(null, "Desea eliminar el problema médico: " + problemaMedico.getDescProblema(), "Eliminar Problema Médico", JOptionPane.YES_NO_OPTION);
+                if (resp == JOptionPane.YES_OPTION) {
+                    final EntityManager em = EntityManagerFactory.getEntityManager();
+
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            em.getTransaction().begin();
+                            GcliHistoriaClinicaPK gcliHistoriaClinicaPK = new GcliHistoriaClinicaPK(cliente.getIdCliente(), problemaMedico.getIdProblema());
+                            GcliHistoriaClinica historia = em.find(GcliHistoriaClinica.class, gcliHistoriaClinicaPK);
+                            em.remove(historia);
+                            em.flush();
+                            em.getTransaction().commit();
+                            recargarTabla();
+                        }
+                    });
+                }
+            }
+            isPushed = false;
+            return "";
+        }
+
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
         }
     }
 }
