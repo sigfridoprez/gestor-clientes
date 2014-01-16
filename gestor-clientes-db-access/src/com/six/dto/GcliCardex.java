@@ -53,7 +53,7 @@ public class GcliCardex implements Serializable {
     private Date fecha;
     @Basic(optional = false)
     @Column(name = "B_HISTORICO")
-    private Serializable bHistorico;
+    private Boolean bHistorico;
     @Column(name = "NOMBRE_ARCHIVO")
     private String nombreArchivo;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
@@ -93,7 +93,8 @@ public class GcliCardex implements Serializable {
         this.gcliCardexPK = gcliCardexPK;
     }
 
-    public GcliCardex(GcliCardexPK gcliCardexPK, Date fecha, Serializable bHistorico, String ojoDerecho, String ojoIzquierdo) {
+    public GcliCardex(GcliCardexPK gcliCardexPK, Date fecha, Boolean bHistorico,
+            String ojoDerecho, String ojoIzquierdo) {
         this.gcliCardexPK = gcliCardexPK;
         this.fecha = fecha;
         this.bHistorico = bHistorico;
@@ -121,11 +122,11 @@ public class GcliCardex implements Serializable {
         this.fecha = fecha;
     }
 
-    public Serializable getBHistorico() {
+    public Boolean getBHistorico() {
         return bHistorico;
     }
 
-    public void setBHistorico(Serializable bHistorico) {
+    public void setBHistorico(Boolean bHistorico) {
         this.bHistorico = bHistorico;
     }
 
