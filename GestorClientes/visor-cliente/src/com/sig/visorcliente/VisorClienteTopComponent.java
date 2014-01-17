@@ -1262,7 +1262,10 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                             entityManager.getTransaction().begin();
                             cliente = entityManager.find(GcliCliente.class, cliente.getIdCliente());
                             List<GcliCardex> cardexs = cliente.getGcliCardexList();
-                            GcliCardex cardex = new GcliCardex(new GcliCardexPK(cliente.getIdCliente(), cardexs.size()), jdFechaCardex.getDate(), false, jtGraduacionOD.getText(), jtGraduacionOI.getText());
+                            GcliCardex cardex = new GcliCardex(new GcliCardexPK(cliente.getIdCliente(), cardexs.size()), 
+                                    jdFechaCardex.getDate(), false, jtGraduacionOD.getText(), jtGraduacionOI.getText());
+                            GcliUsuario usuarioAtendio = new GcliUsuario(((GcliUsuario)((MyModelJcUsuario)jcAtendio.getModel()).getSelectedItem()).getIdUsuario());
+                            cardex.setIdUsuarioAtendio(usuarioAtendio);
                             cardexs.add(cardex);
                             entityManager.merge(cliente);
                             entityManager.getTransaction().commit();
