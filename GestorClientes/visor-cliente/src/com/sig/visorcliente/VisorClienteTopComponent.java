@@ -9,7 +9,9 @@ import com.sig.utilerias.FuncionesValidacion;
 import com.sig.utilerias.entity.EntityManagerFactory;
 import com.sig.visorcliente.form.EditorObservacionesForm;
 import com.sig.visorcliente.form.HistoriaClinicaForm;
+import com.sig.visorcliente.table.DateRenderer;
 import com.sig.visorcliente.table.TextAreaEditor;
+import com.sig.visorcliente.table.TextAreaRenderer;
 import com.six.dto.GcliCardex;
 import com.six.dto.GcliCardexPK;
 import com.six.dto.GcliCliente;
@@ -42,10 +44,8 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.MutableComboBoxModel;
 import javax.swing.SwingUtilities;
@@ -98,6 +98,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private final SaveCookieImpl impl;
     private final InstanceContent content;
     private GcliCliente cliente;
+    private boolean bActualizar;
     //private GcliInfCodigoPostal cp;
     private Lookup.Result result = null;
 
@@ -144,7 +145,18 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
 
         this.jtProblemasMedicos.getColumnModel().getColumn(2).setPreferredWidth(800);
         this.jtProblemasMedicos.getColumnModel().getColumn(2).setCellEditor(new TextAreaEditor());
-        this.jtProblemasMedicos.getColumnModel().getColumn(2).setCellRenderer(new com.sig.visorcliente.table.TextAreaRenderer());
+        this.jtProblemasMedicos.getColumnModel().getColumn(2).setCellRenderer(new TextAreaRenderer());
+
+        this.jtCardex.getColumnModel().getColumn(0).setCellRenderer(new DateRenderer());
+        this.jtCardex.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = jtCardex.getSelectedRow();
+                GcliCardex cardex = ((MyModelCardex) jtCardex.getModel()).getValueAt(row);
+                setValoresCardex(cardex);
+                bActualizar = true;
+            }
+        });
 
         this.jtProblemasMedicos.addMouseListener(new MouseAdapter() {
             @Override
@@ -241,34 +253,40 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jLabel11 = new javax.swing.JLabel();
         jtGraduacionOD = new javax.swing.JTextField();
         jLabel20 = new javax.swing.JLabel();
-        jTextField10 = new javax.swing.JTextField();
+        jtAddOjoDerecho = new javax.swing.JTextField();
         jLabel21 = new javax.swing.JLabel();
-        jFormattedTextField6 = new javax.swing.JFormattedTextField();
+        jftQueratometriaOjoDerecho = new javax.swing.JFormattedTextField();
         jLabel6 = new javax.swing.JLabel();
         jdFechaCardex = new com.toedter.calendar.JDateChooser();
         jLabel7 = new javax.swing.JLabel();
-        jcAtendio = new javax.swing.JComboBox();
+        jcAtendioCardex = new javax.swing.JComboBox();
         jLabel8 = new javax.swing.JLabel();
-        jFormattedTextField4 = new javax.swing.JFormattedTextField();
+        jftAltoObleaCardex = new javax.swing.JFormattedTextField();
         jLabel9 = new javax.swing.JLabel();
-        jFormattedTextField5 = new javax.swing.JFormattedTextField();
+        jftDiCardex = new javax.swing.JFormattedTextField();
         jLabel10 = new javax.swing.JLabel();
-        jTextField8 = new javax.swing.JTextField();
+        jtfAgudezaVisualCardex = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jLabel29 = new javax.swing.JLabel();
         jtGraduacionOI = new javax.swing.JTextField();
         jLabel30 = new javax.swing.JLabel();
-        jTextField14 = new javax.swing.JTextField();
+        jtAddOjoIzquierdo = new javax.swing.JTextField();
         jLabel31 = new javax.swing.JLabel();
-        jFormattedTextField12 = new javax.swing.JFormattedTextField();
+        jftQueratometriaOjoIzquierdo = new javax.swing.JFormattedTextField();
         jLabel22 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        jtaObservacionesCardex = new javax.swing.JTextPane();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jtCardex = new javax.swing.JTable();
         jbCardex = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+
+        jtpCliente.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                jtpClienteStateChanged(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel1.text")); // NOI18N
 
@@ -293,9 +311,10 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 905, Short.MAX_VALUE)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jbAgregarProblemaMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jbAgregarProblemaMedico, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -518,13 +537,13 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         org.openide.awt.Mnemonics.setLocalizedText(jLabel20, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel20.text")); // NOI18N
         jLabel20.setPreferredSize(new java.awt.Dimension(130, 15));
 
-        jTextField10.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField10.text")); // NOI18N
-        jTextField10.setPreferredSize(new java.awt.Dimension(200, 22));
+        jtAddOjoDerecho.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtAddOjoDerecho.text")); // NOI18N
+        jtAddOjoDerecho.setPreferredSize(new java.awt.Dimension(200, 22));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel21, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel21.text")); // NOI18N
         jLabel21.setPreferredSize(new java.awt.Dimension(130, 15));
 
-        jFormattedTextField6.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField6.text")); // NOI18N
+        jftQueratometriaOjoDerecho.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jftQueratometriaOjoDerecho.text")); // NOI18N
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -539,11 +558,11 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jtGraduacionOD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(82, 82, 82)
+                        .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jFormattedTextField6))
+                        .addComponent(jtAddOjoDerecho, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jftQueratometriaOjoDerecho))
                 .addGap(56, 56, 56))
         );
         jPanel2Layout.setVerticalGroup(
@@ -553,11 +572,11 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jtGraduacionOD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtAddOjoDerecho, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jFormattedTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jftQueratometriaOjoDerecho, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(21, 21, 21))
         );
 
@@ -571,22 +590,22 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         org.openide.awt.Mnemonics.setLocalizedText(jLabel7, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel7.text")); // NOI18N
         jLabel7.setPreferredSize(new java.awt.Dimension(80, 15));
 
-        jcAtendio.setModel(new VisorClienteTopComponent.MyModelJcUsuario());
-        jcAtendio.setPreferredSize(new java.awt.Dimension(150, 24));
+        jcAtendioCardex.setModel(new VisorClienteTopComponent.MyModelJcUsuario());
+        jcAtendioCardex.setPreferredSize(new java.awt.Dimension(150, 24));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel8, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel8.text")); // NOI18N
 
-        jFormattedTextField4.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField4.text")); // NOI18N
+        jftAltoObleaCardex.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jftAltoObleaCardex.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel9, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel9.text")); // NOI18N
 
-        jFormattedTextField5.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField5.text")); // NOI18N
-        jFormattedTextField5.setPreferredSize(new java.awt.Dimension(150, 22));
+        jftDiCardex.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jftDiCardex.text")); // NOI18N
+        jftDiCardex.setPreferredSize(new java.awt.Dimension(150, 22));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel10, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel10.text")); // NOI18N
 
-        jTextField8.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField8.text")); // NOI18N
-        jTextField8.setPreferredSize(new java.awt.Dimension(150, 22));
+        jtfAgudezaVisualCardex.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtfAgudezaVisualCardex.text")); // NOI18N
+        jtfAgudezaVisualCardex.setPreferredSize(new java.awt.Dimension(150, 22));
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jPanel5.border.title"))); // NOI18N
         jPanel5.setPreferredSize(new java.awt.Dimension(718, 100));
@@ -600,13 +619,13 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         org.openide.awt.Mnemonics.setLocalizedText(jLabel30, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel30.text")); // NOI18N
         jLabel30.setPreferredSize(new java.awt.Dimension(130, 15));
 
-        jTextField14.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jTextField14.text")); // NOI18N
-        jTextField14.setPreferredSize(new java.awt.Dimension(200, 22));
+        jtAddOjoIzquierdo.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtAddOjoIzquierdo.text")); // NOI18N
+        jtAddOjoIzquierdo.setPreferredSize(new java.awt.Dimension(200, 22));
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel31, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel31.text")); // NOI18N
         jLabel31.setPreferredSize(new java.awt.Dimension(130, 15));
 
-        jFormattedTextField12.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jFormattedTextField12.text")); // NOI18N
+        jftQueratometriaOjoIzquierdo.setText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jftQueratometriaOjoIzquierdo.text")); // NOI18N
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -621,11 +640,11 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jtGraduacionOI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(82, 82, 82)
+                        .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jFormattedTextField12))
+                        .addComponent(jtAddOjoIzquierdo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jftQueratometriaOjoIzquierdo))
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
@@ -635,17 +654,17 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jtGraduacionOI, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField14, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jtAddOjoIzquierdo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel31, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jFormattedTextField12, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jftQueratometriaOjoIzquierdo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(21, 21, 21))
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel22, org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jLabel22.text")); // NOI18N
 
-        jScrollPane3.setViewportView(jTextPane1);
+        jScrollPane3.setViewportView(jtaObservacionesCardex);
 
         javax.swing.GroupLayout jpDetalleCardexLayout = new javax.swing.GroupLayout(jpDetalleCardex);
         jpDetalleCardex.setLayout(jpDetalleCardexLayout);
@@ -661,22 +680,22 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                         .addGap(165, 165, 165)
                         .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jcAtendio, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jcAtendioCardex, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jpDetalleCardexLayout.createSequentialGroup()
                         .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jpDetalleCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 762, Short.MAX_VALUE)
                             .addGroup(jpDetalleCardexLayout.createSequentialGroup()
-                                .addComponent(jFormattedTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jftAltoObleaCardex, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(12, 12, 12)
-                                .addComponent(jFormattedTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jftDiCardex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jLabel10)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jtfAgudezaVisualCardex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jPanel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 762, Short.MAX_VALUE)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING)))
                     .addGroup(jpDetalleCardexLayout.createSequentialGroup()
@@ -695,19 +714,19 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                             .addComponent(jdFechaCardex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(5, 5, 5)
                         .addGroup(jpDetalleCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jFormattedTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jftAltoObleaCardex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel8)))
                     .addGroup(jpDetalleCardexLayout.createSequentialGroup()
                         .addGroup(jpDetalleCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jcAtendio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jcAtendioCardex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jpDetalleCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jFormattedTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jftDiCardex, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jpDetalleCardexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(jLabel9)
                                 .addComponent(jLabel10)
-                                .addComponent(jTextField8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(jtfAgudezaVisualCardex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -715,8 +734,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel22)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE)
-                .addGap(39, 39, 39))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout jpContenidoLayout = new javax.swing.GroupLayout(jpContenido);
@@ -758,13 +777,13 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addContainerGap()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 729, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jbCardex, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(60, 60, 60))
+                    .addComponent(jbCardex, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -774,9 +793,10 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jbCardex)
-                        .addGap(3, 3, 3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton2)
-                        .addContainerGap(72, Short.MAX_VALUE))))
+                        .addGap(0, 59, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout jpCardexLayout = new javax.swing.GroupLayout(jpCardex);
@@ -930,22 +950,23 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
         jpContenido.add(jpDetalleCardex);
 
         jdFechaCardex.requestFocus();
-        jdFechaCardex.setDate(new Date());
 
         TypedQuery<GcliUsuario> queryCliente = em.createNamedQuery("GcliUsuario.findAll", GcliUsuario.class);
         List<GcliUsuario> usuarios = queryCliente.getResultList();
-        ((MyModelJcUsuario) this.jcAtendio.getModel()).addElements(usuarios);
+        ((MyModelJcUsuario) this.jcAtendioCardex.getModel()).addElements(usuarios);
         jpContenido.repaint();
         //Listo para Guardar la información
+        clearValoresCardex();
+        bActualizar = false;
         fire(true);
-
     }//GEN-LAST:event_jbCardexActionPerformed
+
+    private void jtpClienteStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jtpClienteStateChanged
+        // TODO add your handling code here
+        System.out.println("Hola mundi");
+    }//GEN-LAST:event_jtpClienteStateChanged
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton2;
-    private javax.swing.JFormattedTextField jFormattedTextField12;
-    private javax.swing.JFormattedTextField jFormattedTextField4;
-    private javax.swing.JFormattedTextField jFormattedTextField5;
-    private javax.swing.JFormattedTextField jFormattedTextField6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -977,14 +998,14 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField14;
-    private javax.swing.JTextField jTextField8;
-    private javax.swing.JTextPane jTextPane1;
     private javax.swing.JButton jbAgregarProblemaMedico;
     private javax.swing.JButton jbCardex;
-    private javax.swing.JComboBox jcAtendio;
+    private javax.swing.JComboBox jcAtendioCardex;
     private com.toedter.calendar.JDateChooser jdFechaCardex;
+    private javax.swing.JFormattedTextField jftAltoObleaCardex;
+    private javax.swing.JFormattedTextField jftDiCardex;
+    private javax.swing.JFormattedTextField jftQueratometriaOjoDerecho;
+    private javax.swing.JFormattedTextField jftQueratometriaOjoIzquierdo;
     private javax.swing.JLabel jlColonia;
     private javax.swing.JLabel jlEstado;
     private javax.swing.JLabel jlMunicipio;
@@ -992,6 +1013,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JPanel jpCliente;
     private javax.swing.JPanel jpContenido;
     private javax.swing.JPanel jpDetalleCardex;
+    private javax.swing.JTextField jtAddOjoDerecho;
+    private javax.swing.JTextField jtAddOjoIzquierdo;
     private javax.swing.JTextField jtApMaterno;
     private javax.swing.JTextField jtApPaterno;
     private javax.swing.JTextField jtCalle;
@@ -1006,6 +1029,8 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
     private javax.swing.JTextField jtNombre;
     private javax.swing.JTable jtProblemasMedicos;
     private javax.swing.JFormattedTextField jtTelefono;
+    private javax.swing.JTextPane jtaObservacionesCardex;
+    private javax.swing.JTextField jtfAgudezaVisualCardex;
     private javax.swing.JTabbedPane jtpCliente;
     // End of variables declaration//GEN-END:variables
 
@@ -1166,6 +1191,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     modelo.clear();
                     jpContenido.remove(jpDetalleCardex);
                 }
+                clearValoresCardex();
             }
         });
     }
@@ -1250,25 +1276,72 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
                     break;
                 case 1:
                     if (validaGuardadoCardex()) {
-                        NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar el cardex del cliente: \""
-                                + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText() + "\"",
-                                NotifyDescriptor.OK_CANCEL_OPTION,
-                                NotifyDescriptor.QUESTION_MESSAGE);
+                        if (bActualizar) {
+                            NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea actualizar el cardex del cliente: \""
+                                    + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText() + "\"",
+                                    NotifyDescriptor.OK_CANCEL_OPTION,
+                                    NotifyDescriptor.QUESTION_MESSAGE);
 
-                        Object result = DialogDisplayer.getDefault().notify(message);
-                        if (NotifyDescriptor.YES_OPTION.equals(result)) {
-                            fire(false);
-                            EntityManager entityManager = EntityManagerFactory.getEntityManager();
-                            entityManager.getTransaction().begin();
-                            cliente = entityManager.find(GcliCliente.class, cliente.getIdCliente());
-                            List<GcliCardex> cardexs = cliente.getGcliCardexList();
-                            GcliCardex cardex = new GcliCardex(new GcliCardexPK(cliente.getIdCliente(), cardexs.size()), 
-                                    jdFechaCardex.getDate(), false, jtGraduacionOD.getText(), jtGraduacionOI.getText());
-                            GcliUsuario usuarioAtendio = new GcliUsuario(((GcliUsuario)((MyModelJcUsuario)jcAtendio.getModel()).getSelectedItem()).getIdUsuario());
-                            cardex.setIdUsuarioAtendio(usuarioAtendio);
-                            cardexs.add(cardex);
-                            entityManager.merge(cliente);
-                            entityManager.getTransaction().commit();
+                            Object result = DialogDisplayer.getDefault().notify(message);
+                            if (NotifyDescriptor.YES_OPTION.equals(result)) {
+                                fire(false);
+                                int row = jtCardex.getSelectedRow();
+                                GcliCardex cardexSeleccionado = ((MyModelCardex) jtCardex.getModel()).getValueAt(row);
+                                EntityManager entityManager = EntityManagerFactory.getEntityManager();
+                                entityManager.getTransaction().begin();
+
+                                GcliCardex cardexDB = entityManager.find(GcliCardex.class, cardexSeleccionado.getGcliCardexPK());
+                                cliente = entityManager.find(GcliCliente.class, cliente.getIdCliente());
+                                GcliUsuario usuarioAtendio = new GcliUsuario(((GcliUsuario) ((MyModelJcUsuario) jcAtendioCardex.getModel()).getSelectedItem()).getIdUsuario());
+                                cardexDB.setIdUsuarioAtendio(usuarioAtendio);
+                                //cardex.setAltoOblea(jftAltoObleaCardex.getValue());
+                                //cardex.setDistanciaInterPupilar(jftDiCardex.getValue());
+                                cardexDB.setAgudezaVisual(jtfAgudezaVisualCardex.getText());
+                                //Cardex ojo derecho
+                                cardexDB.setAddDerecho(FuncionesValidacion.esValido(jtAddOjoDerecho.getText()) ? Integer.parseInt(jtAddOjoDerecho.getText()) : null);
+                                cardexDB.setQueratometriaOd(jftQueratometriaOjoDerecho.getText());
+                                //Cardex ojo izquierdo
+                                cardexDB.setAddIzquierdo(FuncionesValidacion.esValido(jtAddOjoIzquierdo.getText()) ? Integer.parseInt(jtAddOjoIzquierdo.getText()) : null);
+                                cardexDB.setQueratometriaOi(jftQueratometriaOjoIzquierdo.getText());
+                                cardexDB.setObservaciones(jtaObservacionesCardex.getText());
+
+                                entityManager.merge(cardexDB);
+                                entityManager.getTransaction().commit();
+                            }
+                        } else {
+                            NotifyDescriptor.Confirmation message = new NotifyDescriptor.Confirmation("Desea guardar el cardex del cliente: \""
+                                    + jtNombre.getText() + " " + jtApPaterno.getText() + " " + jtApMaterno.getText() + "\"",
+                                    NotifyDescriptor.OK_CANCEL_OPTION,
+                                    NotifyDescriptor.QUESTION_MESSAGE);
+
+                            Object result = DialogDisplayer.getDefault().notify(message);
+                            if (NotifyDescriptor.YES_OPTION.equals(result)) {
+                                fire(false);
+
+                                EntityManager entityManager = EntityManagerFactory.getEntityManager();
+                                entityManager.getTransaction().begin();
+                                cliente = entityManager.find(GcliCliente.class, cliente.getIdCliente());
+                                List<GcliCardex> cardexs = cliente.getGcliCardexList();
+                                GcliCardex cardex = new GcliCardex(new GcliCardexPK(cliente.getIdCliente(), cardexs.size()),
+                                        jdFechaCardex.getDate(), false, jtGraduacionOD.getText(), jtGraduacionOI.getText());
+                                GcliUsuario usuarioAtendio = new GcliUsuario(((GcliUsuario) ((MyModelJcUsuario) jcAtendioCardex.getModel()).getSelectedItem()).getIdUsuario());
+                                cardex.setIdUsuarioAtendio(usuarioAtendio);
+
+                                //cardex.setAltoOblea(jftAltoObleaCardex.getValue());
+                                //cardex.setDistanciaInterPupilar(jftDiCardex.getValue());
+                                cardex.setAgudezaVisual(jtfAgudezaVisualCardex.getText());
+                                //Cardex ojo derecho
+                                cardex.setAddDerecho(FuncionesValidacion.esValido(jtAddOjoDerecho.getText()) ? Integer.parseInt(jtAddOjoDerecho.getText()) : null);
+                                cardex.setQueratometriaOd(jftQueratometriaOjoDerecho.getText());
+                                //Cardex ojo izquierdo
+                                cardex.setAddIzquierdo(FuncionesValidacion.esValido(jtAddOjoIzquierdo.getText()) ? Integer.parseInt(jtAddOjoIzquierdo.getText()) : null);
+                                cardex.setQueratometriaOi(jftQueratometriaOjoIzquierdo.getText());
+                                cardex.setObservaciones(jtaObservacionesCardex.getText());
+
+                                cardexs.add(cardex);
+                                entityManager.merge(cliente);
+                                entityManager.getTransaction().commit();
+                            }
                         }
                     }
                     break;
@@ -1421,7 +1494,7 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
 
         @Override
         public int getColumnCount() {
-            return 3;
+            return 2;
         }
 
         private GcliCardex getValueAt(int index) {
@@ -1494,7 +1567,6 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
-        @Override
         public void setSelectedItem(Object anObject) {
             if ((gcliUsuario != null && gcliUsuario.getIdUsuario().intValue() != ((GcliUsuario) anObject).getIdUsuario().intValue())
                     || gcliUsuario == null && anObject != null) {
@@ -1528,32 +1600,6 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             setToolTipText(org.openide.util.NbBundle.getMessage(VisorClienteTopComponent.class, "VisorClienteTopComponent.jtCardex.columnModel.title0"));
             setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/sig/visorcliente/resources/eliminar.png")));
             return this;
-        }
-    }
-
-    class TextAreaRenderer implements TableCellRenderer {
-
-        private JScrollPane scrollPane;
-        private JTextArea textArea;
-
-        public TextAreaRenderer() {
-            setOpaque(true);
-            textArea = new JTextArea();
-            scrollPane = new JScrollPane(textArea);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            if (isSelected) {
-                setForeground(table.getSelectionForeground());
-                setBackground(table.getSelectionBackground());
-            } else {
-                setForeground(table.getForeground());
-                setBackground(UIManager.getColor("Button.background"));
-            }
-            textArea.setText((value == null) ? "" : value.toString());
-            return scrollPane;
         }
     }
 
@@ -1619,5 +1665,41 @@ public final class VisorClienteTopComponent extends TopComponent implements Look
             isPushed = false;
             return super.stopCellEditing();
         }
+    }
+
+    private void setValoresCardex(GcliCardex cardex) {
+        jdFechaCardex.setDate(cardex.getFecha());
+        ((MyModelJcUsuario) jcAtendioCardex.getModel()).setSelectedItem(cardex.getIdUsuarioAtendio());
+        jftAltoObleaCardex.setText(cardex.getAltoOblea() != null ? cardex.getAltoOblea().toString() : "");
+        jftDiCardex.setText(cardex.getDistanciaInterPupilar() != null ? cardex.getDistanciaInterPupilar().toString() : "");
+        jtfAgudezaVisualCardex.setText(cardex.getAgudezaVisual() != null ? cardex.getAgudezaVisual().toString() : "");
+        //Cardex ojo derecho
+        jtGraduacionOD.setText(cardex.getOjoDerecho());
+        jtAddOjoDerecho.setText(cardex.getAddDerecho() != null ? cardex.getAddDerecho().toString() : "");
+        jftQueratometriaOjoDerecho.setText(cardex.getQueratometriaOd() != null ? cardex.getQueratometriaOd().toString() : "");
+        //Cardex ojo izquierdo
+        jtGraduacionOI.setText(cardex.getOjoIzquierdo());
+        jtAddOjoIzquierdo.setText(cardex.getAddIzquierdo() != null ? cardex.getAddIzquierdo().toString() : "");
+        jftQueratometriaOjoIzquierdo.setText(cardex.getQueratometriaOi() != null ? cardex.getQueratometriaOi().toString() : "");
+        jtaObservacionesCardex.setText(cardex.getObservaciones() != null ? cardex.getObservaciones() : "");
+    }
+
+    private void clearValoresCardex() {
+        jdFechaCardex.setDate(new Date());
+        if (jcAtendioCardex.getModel().getSize() > 0) {
+            jcAtendioCardex.setSelectedIndex(0);
+        }
+        jftAltoObleaCardex.setText("");
+        jftDiCardex.setText("");
+        jtfAgudezaVisualCardex.setText("");
+        //Cardex ojo derecho
+        jtGraduacionOD.setText("");
+        jtAddOjoDerecho.setText("");
+        jftQueratometriaOjoDerecho.setText("");
+        //Cardex ojo izquierdo
+        jtGraduacionOI.setText("");
+        jtAddOjoIzquierdo.setText("");
+        jftQueratometriaOjoIzquierdo.setText("");
+        jtaObservacionesCardex.setText("");
     }
 }
