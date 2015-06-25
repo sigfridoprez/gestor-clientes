@@ -1,0 +1,1 @@
+Un Gestor de clientes muy básico para una optica, desarrollado sobre la plataforma de NetBeans
